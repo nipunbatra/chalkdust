@@ -4,13 +4,15 @@ local-pkgs := home_directory() / "Library/Application Support/typst/packages/loc
 
 # symlink all packages into the @local namespace
 install:
-    mkdir -p "{{local-pkgs}}/ml-theme" "{{local-pkgs}}/tensor-grid"
+    mkdir -p "{{local-pkgs}}/ml-theme" "{{local-pkgs}}/tensor-grid" "{{local-pkgs}}/ml-plot"
     ln -sfn "{{justfile_directory()}}/packages/ml-theme" "{{local-pkgs}}/ml-theme/0.1.0"
     ln -sfn "{{justfile_directory()}}/packages/tensor-grid" "{{local-pkgs}}/tensor-grid/0.1.0"
+    ln -sfn "{{justfile_directory()}}/packages/ml-plot" "{{local-pkgs}}/ml-plot/0.1.0"
 
 # compile every package gallery (the de-facto test suite)
 gallery:
     typst compile packages/tensor-grid/docs/gallery.typ
+    typst compile packages/ml-plot/docs/gallery.typ
 
 # render galleries to PNG for visual inspection
 gallery-png:

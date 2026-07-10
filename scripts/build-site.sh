@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build the GitHub Pages site: render the tensor-grid gallery (the de-facto test
-# suite) to SVG and wrap it in a self-contained landing page.
+# Build the GitHub Pages site: render each package gallery (the de-facto test
+# suite) to SVG and wrap them in a self-contained landing page.
 # Assumes the packages are installed on Typst's @local namespace (`just install`).
 # Usage: bash scripts/build-site.sh [out-dir]   (default: _site)
 set -euo pipefail
@@ -8,14 +8,20 @@ cd "$(dirname "$0")/.."
 OUT="${1:-_site}"
 rm -rf "$OUT"; mkdir -p "$OUT"
 
-# Render every gallery page to a crisp vector SVG (gallery-1.svg, gallery-2.svg, …).
-typst compile --format svg packages/tensor-grid/docs/gallery.typ "$OUT/gallery-{p}.svg"
+# Render each gallery to crisp vector SVGs (one per page).
+typst compile --format svg packages/tensor-grid/docs/gallery.typ "$OUT/tensor-grid-{p}.svg"
+typst compile --format svg packages/ml-plot/docs/gallery.typ     "$OUT/ml-plot-{p}.svg"
 
-# Collect the rendered pages, in numeric order.
-imgs=""
-for f in $(ls "$OUT"/gallery-*.svg | sort -V); do
-  imgs+="      <img src=\"$(basename "$f")\" alt=\"tensor-grid gallery page\" />\n"
-done
+# Collect rendered pages, in numeric order, into two galleries.
+collect() {  # $1 = prefix
+  local out=""
+  for f in $(ls "$OUT/$1"-*.svg 2>/dev/null | sort -V); do
+    out+="      <img src=\"$(basename "$f")\" alt=\"$1 gallery page\" />\n"
+  done
+  printf "%b" "$out"
+}
+tg_imgs="$(collect tensor-grid)"
+mp_imgs="$(collect ml-plot)"
 
 cat > "$OUT/index.html" <<HTML
 <!doctype html>
@@ -41,7 +47,7 @@ cat > "$OUT/index.html" <<HTML
   code,pre{ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace; }
   pre{ background:var(--paper); border:1px solid var(--border); border-left:3px solid var(--accent);
        border-radius:6px; padding:14px 16px; overflow-x:auto; font-size:.9rem; }
-  .pkgs{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .pkgs{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
   @media(max-width:640px){ .pkgs{ grid-template-columns:1fr; } }
   .pkg{ background:var(--paper); border:1px solid var(--border); border-radius:8px; padding:16px 18px; }
   .pkg b{ font-family:"IBM Plex Mono",monospace; color:var(--accent); }
@@ -63,20 +69,23 @@ cat > "$OUT/index.html" <<HTML
   <h2>Packages</h2>
   <div class="pkgs">
     <div class="pkg"><b>ml-theme</b><br/>Shared design tokens: semantic colours, diverging ramps, stroke weights.</div>
-    <div class="pkg"><b>tensor-grid</b><br/>Convolution arithmetic (animated multiply-add), annotated grids, pooling, receptive-field growth, patchify, and causal / softmaxed attention heatmaps.</div>
+    <div class="pkg"><b>tensor-grid</b><br/>Convolution arithmetic, annotated grids, pooling, receptive fields, patchify (with masking), and attention heatmaps (masks, boxed cells).</div>
+    <div class="pkg"><b>ml-plot</b><br/>General bar and line plots — distributions (with softmax), attention weights, signed gradients, and loss / receptive-field curves.</div>
   </div>
 
   <h2>Use it</h2>
   <pre>just install            <span style="color:#6e7f82"># symlink packages into Typst @local</span>
-just gallery            <span style="color:#6e7f82"># compile the gallery (the test suite)</span></pre>
-  <pre>#import "@local/ml-theme:0.1.0": theme
-#import "@local/tensor-grid:0.1.0" as tg
-#let mine = tg.conv-op.with(theme: theme(accent: rgb("#eb811b")))
-#mine(input: X, kernel: K, step: 4, show-expr: true)</pre>
+just gallery            <span style="color:#6e7f82"># compile the galleries (the test suite)</span></pre>
+  <pre>#import "@local/ml-plot:0.1.0": *
+#bars((3.0, 1.0, 0.2), labels: ("cat", "dog", "cow"), softmax: true)</pre>
 
-  <h2>Gallery</h2>
+  <h2>tensor-grid</h2>
   <div class="gallery">
-$(printf "%b" "$imgs")  </div>
+$tg_imgs  </div>
+
+  <h2>ml-plot</h2>
+  <div class="gallery">
+$mp_imgs  </div>
 
   <footer>
     MIT-licensed · built on <a href="https://cetz-package.github.io/">CeTZ</a> ·
@@ -88,4 +97,4 @@ $(printf "%b" "$imgs")  </div>
 </html>
 HTML
 
-echo "built $OUT/ ($(ls "$OUT"/gallery-*.svg | wc -l | tr -d ' ') gallery page(s) + index.html)"
+echo "built $OUT/ ($(ls "$OUT"/tensor-grid-*.svg "$OUT"/ml-plot-*.svg 2>/dev/null | wc -l | tr -d ' ') gallery page(s) + index.html)"

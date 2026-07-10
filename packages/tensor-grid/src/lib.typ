@@ -440,6 +440,7 @@
   softmax: false,                 // row-softmax values before display (masked → −∞)
   annotate: true,
   min-annotate: 0.0,              // hide annotations below this value
+  boxes: (),                      // ((i, j), …) or ((i, j, color), …) — outline cells (e.g. positives)
   colorbar: false,
   q-label: [query #h(0.25em) $q_i$],
   k-label: [key #h(0.25em) $k_j$],
@@ -486,6 +487,12 @@
       },
       text-fill: (v, i, j) => if _is-num(v) { contrast-text(norm(v, lo, hi), t) } else { t.ink },
       col-labels: ktok, row-labels: qtok)
+    // outline specific cells (e.g. the positive pair per row of a contrastive matrix)
+    for b in boxes {
+      let (bi, bj, bc) = if b.len() > 2 { (b.at(0), b.at(1), b.at(2)) } else { (b.at(0), b.at(1), t.accent) }
+      rect((bj * cell, y0 - bi * cell), ((bj + 1) * cell, y0 - (bi + 1) * cell),
+        stroke: t.window-stroke + bc, fill: none)
+    }
     // axis titles
     content((nk * cell / 2, y0 + 1.15 * cell), anchor: "south",
       _txt(t.label-text * cell, k-label, fill: t.ink))
@@ -580,6 +587,7 @@
   gap: 0mm,                       // > 0 → exploded patches
   numbering: true,                // patch index in the center of each patch
   show-values: false,             // render each cell's value (for value-carrying images)
+  mask: (),                       // 0-based raster indices of patches to hide (MAE-style)
   cell: 5mm,
   theme: default-theme,
 ) = {
@@ -600,20 +608,28 @@
       for pj in range(np-c) {
         let x = pj * (patch * cell + gap)
         let y = y0 - pi * (patch * cell + gap)
-        let sub = if vals != none {
-          range(patch).map(a => range(patch).map(b => vals.at(pi * patch + a).at(pj * patch + b)))
-        } else { (patch, patch) }
-        grid-draw((x, y), sub, cell: cell, theme: t,
-          fill: if vals != none { auto } else { t.bg.transparentize(50%) },
-          vmin: gmin, vmax: gmax,                         // shared scale (see above)
-          fmt: if show-values and vals != none { auto } else { none },
-          stroke: 0.5pt + t.muted)
-        rect((x, y), (x + patch * cell, y - patch * cell),
-          stroke: t.frame-stroke + t.accent, fill: none)
-        if numbering {
-          content((x + patch * cell / 2, y - patch * cell / 2),
-            _txt(0.38 * patch * cell, str(pi * np-c + pj + 1),
-              fill: t.ink.transparentize(35%), weight: 700))
+        let idx = pi * np-c + pj
+        if mask.contains(idx) {
+          // a hidden patch (masked autoencoder): grey block, dashed frame, no content
+          rect((x, y), (x + patch * cell, y - patch * cell), fill: t.muted.transparentize(58%), stroke: none)
+          rect((x, y), (x + patch * cell, y - patch * cell), fill: none,
+            stroke: (paint: t.muted, dash: "dashed", thickness: t.grid-stroke))
+        } else {
+          let sub = if vals != none {
+            range(patch).map(a => range(patch).map(b => vals.at(pi * patch + a).at(pj * patch + b)))
+          } else { (patch, patch) }
+          grid-draw((x, y), sub, cell: cell, theme: t,
+            fill: if vals != none { auto } else { t.bg.transparentize(50%) },
+            vmin: gmin, vmax: gmax,                         // shared scale (see above)
+            fmt: if show-values and vals != none { auto } else { none },
+            stroke: 0.5pt + t.muted)
+          rect((x, y), (x + patch * cell, y - patch * cell),
+            stroke: t.frame-stroke + t.accent, fill: none)
+          if numbering {
+            content((x + patch * cell / 2, y - patch * cell / 2),
+              _txt(0.38 * patch * cell, str(idx + 1),
+                fill: t.ink.transparentize(35%), weight: 700))
+          }
         }
       }
     }

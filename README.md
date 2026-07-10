@@ -7,8 +7,8 @@ on the slide. Scope and roadmap: [SCOPE.md](SCOPE.md).
 | Package | Status | What it does |
 |---|---|---|
 | [`ml-theme`](packages/ml-theme) | v0.1.0 | shared design tokens: semantic colors, ramps, stroke weights |
-| [`tensor-grid`](packages/tensor-grid) | v0.1.0 | conv arithmetic, annotated grids, pooling, receptive fields, patchify, attention heatmaps |
-| `ml-plot` | planned (M2) | activation curves, loss contours + descent paths, schedules — on lilaq |
+| [`tensor-grid`](packages/tensor-grid) | v0.1.0 | conv arithmetic, annotated grids, pooling, receptive fields, patchify (with masking), attention heatmaps (masks, boxed cells) |
+| [`ml-plot`](packages/ml-plot) | v0.1.0 | general bar & line plots — distributions (softmax), attention weights, signed gradients, loss / receptive-field curves |
 | `nn-arch` | planned (M3) | MLP/RNN/transformer semantic blocks — on fletcher |
 | `plate-note` | planned (M4) | PGM plate notation à la tikz-bayesnet |
 
