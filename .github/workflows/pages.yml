@@ -1,0 +1,44 @@
+name: Deploy gallery to GitHub Pages
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Typst
+        uses: typst-community/setup-typst@v4
+
+      - name: Install packages into the @local namespace
+        run: |
+          LOCAL="$HOME/.local/share/typst/packages/local"
+          mkdir -p "$LOCAL/ml-theme" "$LOCAL/tensor-grid"
+          ln -sfn "$PWD/packages/ml-theme"    "$LOCAL/ml-theme/0.1.0"
+          ln -sfn "$PWD/packages/tensor-grid" "$LOCAL/tensor-grid/0.1.0"
+
+      - name: Build site (render gallery + landing page)
+        run: bash scripts/build-site.sh _site
+
+      - uses: actions/configure-pages@v4
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - uses: actions/deploy-pages@v4
