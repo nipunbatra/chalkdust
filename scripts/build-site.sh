@@ -12,6 +12,7 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 typst compile --format svg packages/ml-theme/docs/gallery.typ    "$OUT/ml-theme-{p}.svg"
 typst compile --format svg packages/tensor-grid/docs/gallery.typ "$OUT/tensor-grid-{p}.svg"
 typst compile --format svg packages/ml-plot/docs/gallery.typ     "$OUT/ml-plot-{p}.svg"
+typst compile --format svg packages/ml-data/docs/gallery.typ     "$OUT/ml-data-{p}.svg"
 
 collect() {  # $1 = prefix → <img> tags for that gallery, in order
   local out=""
@@ -40,7 +41,7 @@ HEAD='<!doctype html><html lang="en"><head><meta charset="utf-8" />
  code,pre{ font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
  pre{ background:var(--paper); border:1px solid var(--border); border-left:3px solid var(--accent);
    border-radius:6px; padding:14px 16px; overflow-x:auto; font-size:.9rem; }
- .cards{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; } @media(max-width:680px){ .cards{ grid-template-columns:1fr; } }
+ .cards{ display:grid; grid-template-columns:1fr 1fr; gap:16px; } @media(max-width:680px){ .cards{ grid-template-columns:1fr; } }
  .card{ background:var(--paper); border:1px solid var(--border); border-radius:8px; padding:18px; text-decoration:none; color:inherit; display:block; }
  .card:hover{ border-color:var(--accent); } .card b{ font-family:"IBM Plex Mono",monospace; color:var(--accent); font-size:1.05rem; }
  .card p{ color:var(--muted); font-size:.92rem; margin:8px 0 10px; } .card .go{ color:var(--teal); font-size:.9rem; }
@@ -56,6 +57,7 @@ nav() {  # $1 = current page key (index|tensor-grid|ml-plot|ml-theme)
 <nav><span class="brand"><a href="index.html" style="color:inherit;text-decoration:none">chalkdust<span class="dot">.</span></a></span>
 <a href="tensor-grid.html"$(here tensor-grid)>tensor-grid</a>
 <a href="ml-plot.html"$(here ml-plot)>ml-plot</a>
+<a href="ml-data.html"$(here ml-data)>ml-data</a>
 <a href="ml-theme.html"$(here ml-theme)>ml-theme</a>
 <span class="sp"></span>
 <a href="https://github.com/nipunbatra/chalkdust">GitHub ↗</a></nav>
@@ -75,7 +77,8 @@ FOOT='<footer>MIT-licensed · native Typst on <a href="https://cetz-package.gith
    so a figure can never disagree with the math on the slide.</p>
   <h2>Packages</h2><div class="cards">
    <a class="card" href="tensor-grid.html"><b>tensor-grid</b><p>Convolution arithmetic, grids, pooling, receptive fields, patchify, attention heatmaps.</p><span class="go">View gallery →</span></a>
-   <a class="card" href="ml-plot.html"><b>ml-plot</b><p>Bar & line plots: distributions, attention weights, gradients, loss & receptive-field curves.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="ml-plot.html"><b>ml-plot</b><p>Bar & line plots from a function, columns, or points — distributions, gradients, loss curves.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="ml-data.html"><b>ml-data</b><p>A tiny data-frame — load CSV/arrays, pick columns by name, filter/mutate, plot. Data, not guesses.</p><span class="go">View gallery →</span></a>
    <a class="card" href="ml-theme.html"><b>ml-theme</b><p>Shared semantic design tokens — colours, ramps, stroke weights — one override restyles all.</p><span class="go">View gallery →</span></a>
   </div>
   <h2>Use it</h2>
@@ -105,9 +108,15 @@ pkg_page tensor-grid "tensor-grid" \
 #conv-op(input: X, kernel: K, step: 4, show-expr: true)'
 
 pkg_page ml-plot "ml-plot" \
-  "General bar & line plots: distributions (with softmax/temperature), attention weights, signed gradients, and loss / receptive-field curves — with legends, reference lines, read-off points, and area fills." \
+  "General bar & line plots — from a function+domain, x/y columns, or explicit points. Distributions (softmax/temperature), attention weights, signed gradients, loss curves; legends, reference lines, read-off points, area fills." \
   '#import "@local/ml-plot:0.1.0": *
-#bars((3.0, 1.0, 0.2), labels: ("the","cat","sat"), softmax: true)'
+#lines(fn: r => 1.0 - 0.5*r*r, domain: (0,1), fill-under: 0)   // the curve is the maths'
+
+pkg_page ml-data "ml-data" \
+  "A tiny data-frame for Typst — build one from csv()/json()/arrays, pick columns by name, select / filter / mutate / group, and hand columns straight to ml-plot. So a figure plots the data, not a hand-typed guess." \
+  '#import "@local/ml-data:0.1.0" as md
+#let f = md.frame(csv("runs.csv"))
+#mp.lines(md.xy(f, "epoch", ("adam", "sgd")), labels: ("Adam", "SGD"))'
 
 pkg_page ml-theme "ml-theme" \
   "Shared semantic design tokens — colour roles, a diverging value ramp, a multi-series cycle, and stroke weights. Every sibling package takes a theme dict, so one override restyles every figure." \

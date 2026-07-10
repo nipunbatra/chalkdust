@@ -109,7 +109,7 @@
         let v = vals.at(i)
         let y = -i * (bar + g)
         rect((0, y - bar/2), (pos(v), y + bar/2), fill: barcolor(i, v), stroke: none)
-        if lbl != "" { content((-0.4em, y), align(right, text(size: ls, fill: t.ink, lbl)), anchor: "east") }
+        if lbl != "" { content((-0.4em, y), align(right, text(size: ls, fill: t.ink, [#lbl])), anchor: "east") }
         if annotate {
           content((pos(v) + 0.3em * (if v < baseline {-1} else {1}), y),
             text(size: fs, fill: t.muted, _fmt-num(v, digits: digits)),
@@ -127,7 +127,7 @@
         rect((x - bar/2, 0), (x + bar/2, pos(v)), fill: barcolor(i, v), stroke: none)
         // clear the category label below the lowest tip; extra room when bars go negative
         let cat-off = if lo < baseline { 1.4em } else { 0.5em }
-        if lbl != "" { content((x, pos(lo) - cat-off), text(size: ls, fill: t.ink, lbl), anchor: "north") }
+        if lbl != "" { content((x, pos(lo) - cat-off), text(size: ls, fill: t.ink, [#lbl]), anchor: "north") }
         if annotate {
           content((x, pos(v) + 0.3em * (if v < baseline {-1} else {1})),
             text(size: fs, fill: t.muted, _fmt-num(v, digits: digits)),
@@ -150,11 +150,12 @@
 // of y-values (x = index+1). Supports a log-scaled y-axis (receptive fields,
 // cost-vs-length, loss curves).
 #let lines(
-  series: none,               // ONE way to give data: array of (x,y) pairs, or array of series
-  fn: none,                   // OR a function x→y (or array of functions) sampled over `domain`
+  // Data — give ONE of: a positional `series` (array of (x,y) pairs, or array of
+  // series), or `fn` + `domain`, or `x` / `y` arrays.
+  fn: none,                   // a function x→y (or array of functions) sampled over `domain`
   domain: none,               // (xmin, xmax) for `fn`
   samples: 80,                // number of samples for `fn`
-  x: none, y: none,           // OR parallel arrays: y = one array or an array of arrays; x optional (else 1..n)
+  x: none, y: none,           // parallel arrays: y = one array or an array of arrays; x optional (else 1..n)
   labels: none,               // per-series legend labels
   colors: none,               // per-series colour override (array); default → theme.cycle
   log-y: false,
@@ -170,8 +171,10 @@
   x-label: none, y-label: none, title: none,
   size: (62mm, 42mm),
   theme: default-theme,
+  ..args,                     // the (optional) positional `series` lands here
 ) = {
   let t = theme
+  let series = args.pos().at(0, default: none)
   // Build the list of series (each a list of (x,y)) from whichever input was given:
   //   fn + domain  →  sample a formula (the maintainable path: the curve IS the math)
   //   x / y arrays →  parallel columns (data)
