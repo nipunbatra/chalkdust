@@ -155,10 +155,16 @@
   colors: none,               // per-series colour override (array); default → theme.cycle
   log-y: false,
   markers: true,
+  dashes: none,               // per-series stroke style: array of "solid" | "dashed" | "dotted"
+  legend: none,               // none | "tr" | "tl" | "br" | "bl" — a legend box (instead of end labels)
+  fill-under: none,           // series index | (index, color) — shade the area under a curve (e.g. AP)
   points: (),                 // ((x, y, label), …) — read-off markers with droplines to the axes
+  vlines: (),                 // ((x, label?, color?), …) — dashed vertical reference lines
+  hlines: (),                 // ((y, label?, color?), …) — dashed horizontal reference lines
+  annotations: (),            // ((x, y, label), …) — free-floating text
+  y-ticks: true,              // draw numeric y-axis tick labels
   x-label: none, y-label: none, title: none,
   size: (62mm, 42mm),
-  x-ticks: auto, y-ticks: auto,
   theme: default-theme,
 ) = {
   let t = theme
@@ -188,14 +194,27 @@
     for f in (0.25, 0.5, 0.75, 1.0) {
       line((0, f * h), (w, f * h), stroke: 0.4pt + t.muted.lighten(40%))
     }
+    let sercol(si) = if colors != none and si < colors.len() { colors.at(si) }
+      else { t.cycle.at(calc.rem(si, t.cycle.len())) }
+    let dashof(si) = if dashes != none and si < dashes.len() and dashes.at(si) != "solid" { dashes.at(si) } else { none }
+    // shade the area under a curve (e.g. precision–recall AP)
+    if fill-under != none {
+      let (fi, fc) = if type(fill-under) == array { (fill-under.at(0), fill-under.at(1)) }
+        else { (fill-under, sercol(fill-under).transparentize(80%)) }
+      let s = sers.at(fi)
+      let poly = s.map(p => (px(p.at(0)), py(p.at(1))))
+      poly.push((px(s.last().at(0)), 0pt)); poly.push((px(s.first().at(0)), 0pt))
+      line(..poly, close: true, fill: fc, stroke: none)
+    }
     // series
     for (si, s) in sers.enumerate() {
-      let col = if colors != none and si < colors.len() { colors.at(si) }
-        else { t.cycle.at(calc.rem(si, t.cycle.len())) }
+      let col = sercol(si)
       let pts = s.map(p => (px(p.at(0)), py(p.at(1))))
-      for k in range(pts.len() - 1) { line(pts.at(k), pts.at(k + 1), stroke: 1.4pt + col) }
+      let st = if dashof(si) != none { (paint: col, thickness: 1.4pt, dash: dashof(si)) } else { 1.4pt + col }
+      for k in range(pts.len() - 1) { line(pts.at(k), pts.at(k + 1), stroke: st) }
       if markers { for p in pts { circle(p, radius: 1.6pt, fill: col, stroke: none) } }
-      if labels != none and si < labels.len() {
+      // end-of-line label (unless a legend box is drawn instead)
+      if labels != none and legend == none and si < labels.len() {
         content((pts.last().at(0) + 0.4em, pts.last().at(1)),
           text(size: 9pt, fill: col, labels.at(si)), anchor: "west")
       }
@@ -210,12 +229,46 @@
       circle((cx, cy), radius: 2pt, fill: t.accent, stroke: none)
       if lbl != none { content((cx + 0.4em, cy + 0.4em), text(size: 8.5pt, fill: t.ink, lbl), anchor: "west") }
     }
+    // dashed vertical / horizontal reference lines with optional labels
+    for v in vlines {
+      let (xv, lbl, vc) = (v.at(0), if v.len() > 1 { v.at(1) } else { none }, if v.len() > 2 { v.at(2) } else { t.muted })
+      line((px(xv), 0), (px(xv), h), stroke: (paint: vc, dash: "dashed", thickness: 0.8pt))
+      if lbl != none { content((px(xv), h + 0.3em), text(size: 8pt, fill: vc, lbl), anchor: "south") }
+    }
+    for hl in hlines {
+      let (yv, lbl, hc) = (hl.at(0), if hl.len() > 1 { hl.at(1) } else { none }, if hl.len() > 2 { hl.at(2) } else { t.muted })
+      line((0, py(yv)), (w, py(yv)), stroke: (paint: hc, dash: "dashed", thickness: 0.8pt))
+      if lbl != none { content((w - 0.3em, py(yv) + 0.25em), text(size: 8pt, fill: hc, lbl), anchor: "south-east") }
+    }
+    // free-floating text annotations
+    for an in annotations {
+      content((px(an.at(0)), py(an.at(1))), text(size: 8.5pt, fill: t.ink, an.at(2)), anchor: "center")
+    }
+    // y-axis numeric ticks (linear only; log shows a 'log' tag)
+    if y-ticks and not log-y {
+      for f in (0.0, 0.5, 1.0) {
+        content((-0.4em, f * h), text(size: 7.5pt, fill: t.muted, _fmt-num(ymin + f * (ymax - ymin))), anchor: "east")
+      }
+    }
+    // legend box (swatch + label per series) instead of end labels
+    if legend != none and labels != none {
+      let rh = 1.15em
+      let (lx, ly) = if legend == "tl" { (2mm, h - 1.5mm) }
+        else if legend == "br" { (w - 20mm, labels.len() * rh) }
+        else if legend == "bl" { (2mm, labels.len() * rh) }
+        else { (w - 20mm, h - 1.5mm) }              // "tr" default
+      for (i, lb) in labels.enumerate() {
+        let yy = ly - i * rh
+        line((lx, yy), (lx + 3.5mm, yy), stroke: 2.2pt + sercol(i))
+        content((lx + 4.5mm, yy), text(size: 8pt, fill: t.ink, lb), anchor: "west")
+      }
+    }
     // axis labels
     if x-label != none { content((w/2, -1.6em), text(size: 9pt, fill: t.muted, x-label), anchor: "north") }
-    if y-label != none { content((-1.8em, h/2), rotate(-90deg, text(size: 9pt, fill: t.muted, y-label)), anchor: "south") }
+    if y-label != none { content((-2.5em, h/2), rotate(-90deg, text(size: 9pt, fill: t.muted, y-label)), anchor: "south") }
     if log-y { content((-0.6em, h + 0.4em), text(size: 8pt, fill: t.muted)[log], anchor: "south-east") }
     if title != none { content((w/2, h + 1.2em), text(size: 10pt, fill: t.ink, weight: 600, title), anchor: "south") }
-    // end tick labels
+    // x end-tick labels
     content((0, -0.4em), text(size: 8pt, fill: t.muted, _fmt-num(xmin)), anchor: "north")
     content((w, -0.4em), text(size: 8pt, fill: t.muted, _fmt-num(xmax)), anchor: "north")
   })

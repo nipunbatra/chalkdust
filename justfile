@@ -1,4 +1,4 @@
-# typst-ml-diagrams — dev tasks
+# chalkdust — dev tasks
 
 local-pkgs := home_directory() / "Library/Application Support/typst/packages/local"
 
@@ -11,6 +11,7 @@ install:
 
 # compile every package gallery (the de-facto test suite)
 gallery:
+    typst compile packages/ml-theme/docs/gallery.typ
     typst compile packages/tensor-grid/docs/gallery.typ
     typst compile packages/ml-plot/docs/gallery.typ
 

@@ -1,4 +1,4 @@
-# typst-ml-diagrams — scope
+# chalkdust — scope
 
 A family of Typst packages for ML/DL teaching figures, built on CeTZ / fletcher / lilaq,
 inspired by the best of the TikZ ecosystem (vdumoulin's conv_arithmetic, tikz-bayesnet,

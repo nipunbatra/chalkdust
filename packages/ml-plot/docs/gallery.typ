@@ -25,8 +25,15 @@
   markers: false, x-label: [$p_y$], y-label: [$-log p_y$], title: [confident mistakes cost more],
   points: ((0.9, -calc.ln(0.9), [0.9 → 0.11]), (0.1, -calc.ln(0.1), [0.1 → 2.30]), (0.02, -calc.ln(0.02), [0.02 → 3.9])))
 
-== lines — two loss curves
+== lines — two loss curves with a legend box + dashed series
 #lines(
   (((1, 2.3), (2, 1.1), (3, 0.7), (4, 0.5), (5, 0.42)),
    ((1, 2.3), (2, 1.6), (3, 1.2), (4, 1.0), (5, 0.9))),
-  labels: ("Adam", "SGD"), x-label: [epoch], y-label: [loss], title: [optimizer race])
+  labels: ("Adam", "SGD"), dashes: ("solid", "dashed"), legend: "tr",
+  x-label: [epoch], y-label: [loss], title: [optimizer race])
+
+== lines — area fill under a curve + reference line (precision–recall / AP)
+#lines(
+  range(0, 21).map(i => { let r = i / 20; (r, 1.0 - 0.5 * r * r) }),
+  fill-under: 0, markers: false, hlines: ((0.5, [chance]),),
+  x-label: [recall], y-label: [precision], title: [AP = shaded area])

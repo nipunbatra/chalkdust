@@ -1,8 +1,9 @@
-# typst-ml-diagrams
+# chalkdust
 
 A family of Typst packages for ML/DL teaching figures — native, vector,
 palette-themed, and computed in Typst so figures cannot disagree with the math
-on the slide. Scope and roadmap: [SCOPE.md](SCOPE.md).
+on the slide. Gallery: <https://nipunbatra.github.io/chalkdust/>. Scope and
+roadmap: [SCOPE.md](SCOPE.md).
 
 | Package | Status | What it does |
 |---|---|---|
