@@ -150,7 +150,11 @@
 // of y-values (x = index+1). Supports a log-scaled y-axis (receptive fields,
 // cost-vs-length, loss curves).
 #let lines(
-  series,                     // one series (array of points) OR array of series
+  series: none,               // ONE way to give data: array of (x,y) pairs, or array of series
+  fn: none,                   // OR a function x→y (or array of functions) sampled over `domain`
+  domain: none,               // (xmin, xmax) for `fn`
+  samples: 80,                // number of samples for `fn`
+  x: none, y: none,           // OR parallel arrays: y = one array or an array of arrays; x optional (else 1..n)
   labels: none,               // per-series legend labels
   colors: none,               // per-series colour override (array); default → theme.cycle
   log-y: false,
@@ -168,11 +172,26 @@
   theme: default-theme,
 ) = {
   let t = theme
-  // normalize into a list of series, each a list of (x, y)
-  let as-points(s) = if s.len() > 0 and type(s.first()) == array { s } else {
-    s.enumerate().map(((i, y)) => (i + 1, y)) }
-  let multi = series.len() > 0 and type(series.first()) == array and type(series.first().first()) == array
-  let sers = if multi { series.map(as-points) } else { (as-points(series),) }
+  // Build the list of series (each a list of (x,y)) from whichever input was given:
+  //   fn + domain  →  sample a formula (the maintainable path: the curve IS the math)
+  //   x / y arrays →  parallel columns (data)
+  //   series       →  explicit (x,y) tuples
+  let sers = if fn != none {
+    let (a, b) = domain
+    let fns = if type(fn) == function { (fn,) } else { fn }
+    fns.map(f => range(samples + 1).map(i => {
+      let xx = a + i * (b - a) / samples
+      (xx, f(xx))
+    }))
+  } else if y != none {
+    let cols = if y.len() > 0 and type(y.first()) == array { y } else { (y,) }
+    cols.map(col => col.enumerate().map(((i, yv)) => (if x != none { x.at(i) } else { i + 1 }, yv)))
+  } else {
+    let as-points(s) = if s.len() > 0 and type(s.first()) == array { s } else {
+      s.enumerate().map(((i, yv)) => (i + 1, yv)) }
+    let multi = series.len() > 0 and type(series.first()) == array and type(series.first().first()) == array
+    if multi { series.map(as-points) } else { (as-points(series),) }
+  }
 
   let allx = sers.flatten().enumerate().filter(((i, _)) => calc.even(i)).map(((_, v)) => v)
   let xs = sers.map(s => s.map(p => p.at(0))).flatten()

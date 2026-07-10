@@ -32,8 +32,12 @@
   labels: ("Adam", "SGD"), dashes: ("solid", "dashed"), legend: "tr",
   x-label: [epoch], y-label: [loss], title: [optimizer race])
 
-== lines — area fill under a curve + reference line (precision–recall / AP)
-#lines(
-  range(0, 21).map(i => { let r = i / 20; (r, 1.0 - 0.5 * r * r) }),
-  fill-under: 0, markers: false, hlines: ((0.5, [chance]),),
-  x-label: [recall], y-label: [precision], title: [AP = shaded area])
+== lines — a formula is a one-liner (fn + domain), with an area fill under it
+// The curve IS the maths: pass a function, not hand-typed points.
+#lines(fn: r => 1.0 - 0.5 * r * r, domain: (0, 1), fill-under: 0, markers: false,
+  hlines: ((0.5, [chance]),), x-label: [recall], y-label: [precision], title: [precision = 1 − r²/2])
+
+== lines — several formulas at once (the residual-loss family)
+#lines(fn: (r => r * r, r => 1.6 * calc.abs(r), r => 2.2 * calc.ln(1 + r * r)),
+  domain: (-3, 3), labels: ("Gaussian", "Laplace", "Student-t"), legend: "tr", markers: false,
+  x-label: [residual r], y-label: [$-log p(r)$])
