@@ -441,6 +441,7 @@
   annotate: true,
   min-annotate: 0.0,              // hide annotations below this value
   boxes: (),                      // ((i, j), …) or ((i, j, color), …) — outline cells (e.g. positives)
+  mask-style: "inf",              // masked cells: "inf" (grey + −∞) | "grey" (neutral) | "blank" (empty)
   colorbar: false,
   q-label: [query #h(0.25em) $q_i$],
   k-label: [key #h(0.25em) $k_j$],
@@ -475,12 +476,12 @@
       cell: cell, theme: t, vmin: lo, vmax: hi,
       stroke: 1.3pt + t.paper,     // white separators, matplotlib-heatmap style
       fill: (v, i, j) => {
-        if masked(i, j) { t.muted.transparentize(72%) }
+        if masked(i, j) { if mask-style == "blank" { t.paper } else { t.muted.transparentize(72%) } }
         else if _is-num(v) { ramp-color(norm(v, lo, hi), t.ramp) }
         else { t.accent2.transparentize(15%) }
       },
       fmt: (v, i, j) => {
-        if masked(i, j) { text(fill: t.negative, weight: 700, size: 0.85em, $-oo$) }
+        if masked(i, j) { if mask-style == "inf" { text(fill: t.negative, weight: 700, size: 0.85em, $-oo$) } else { none } }
         else if not annotate { none }
         else if _is-num(v) { if v >= min-annotate { _fmt-num(v) } else { none } }
         else { text(fill: t.paper, weight: 700, sym.checkmark) }

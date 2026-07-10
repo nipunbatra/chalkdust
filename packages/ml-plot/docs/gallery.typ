@@ -19,6 +19,12 @@
 == lines — receptive-field growth on a log-scaled axis
 #lines((2, 4, 8, 16, 32, 64), log-y: true, x-label: [layer], y-label: [RF], title: [dilated stack])
 
+== lines — an annotated function curve with read-off points (droplines)
+#lines(
+  range(1, 100).map(k => { let p = k / 100; (p, -calc.ln(p)) }),
+  markers: false, x-label: [$p_y$], y-label: [$-log p_y$], title: [confident mistakes cost more],
+  points: ((0.9, -calc.ln(0.9), [0.9 → 0.11]), (0.1, -calc.ln(0.1), [0.1 → 2.30]), (0.02, -calc.ln(0.02), [0.02 → 3.9])))
+
 == lines — two loss curves
 #lines(
   (((1, 2.3), (2, 1.1), (3, 0.7), (4, 0.5), (5, 0.42)),

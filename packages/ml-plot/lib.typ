@@ -84,10 +84,15 @@
   let range = h05 - lo
   let scale = if range == 0 { 0pt } else { span / range }
   let pos(v) = (v - baseline) * scale                    // signed offset from the baseline
+  let has-hi = hi.len() > 0
   let barcolor(i, v) = {
     if str(i) in hi { hi.at(str(i)) }
     else if type(color) == function { color(i, v) }
-    else if color == auto { if v < baseline { t.negative } else { t.accent } }
+    else if color == auto {
+      // when a highlight is set, dim the other bars so it pops without a manual base colour
+      if has-hi { t.muted.lighten(25%) }
+      else if v < baseline { t.negative } else { t.accent }
+    }
     else { color }
   }
 
@@ -147,8 +152,10 @@
 #let lines(
   series,                     // one series (array of points) OR array of series
   labels: none,               // per-series legend labels
+  colors: none,               // per-series colour override (array); default → theme.cycle
   log-y: false,
   markers: true,
+  points: (),                 // ((x, y, label), …) — read-off markers with droplines to the axes
   x-label: none, y-label: none, title: none,
   size: (62mm, 42mm),
   x-ticks: auto, y-ticks: auto,
@@ -183,7 +190,8 @@
     }
     // series
     for (si, s) in sers.enumerate() {
-      let col = t.cycle.at(calc.rem(si, t.cycle.len()))
+      let col = if colors != none and si < colors.len() { colors.at(si) }
+        else { t.cycle.at(calc.rem(si, t.cycle.len())) }
       let pts = s.map(p => (px(p.at(0)), py(p.at(1))))
       for k in range(pts.len() - 1) { line(pts.at(k), pts.at(k + 1), stroke: 1.4pt + col) }
       if markers { for p in pts { circle(p, radius: 1.6pt, fill: col, stroke: none) } }
@@ -191,6 +199,16 @@
         content((pts.last().at(0) + 0.4em, pts.last().at(1)),
           text(size: 9pt, fill: col, labels.at(si)), anchor: "west")
       }
+    }
+    // annotated read-off points: dot + dashed droplines to both axes + label
+    for pt in points {
+      let (xv, yv, lbl) = (pt.at(0), pt.at(1), if pt.len() > 2 { pt.at(2) } else { none })
+      let (cx, cy) = (px(xv), py(yv))
+      let ds = (paint: t.muted, dash: "dashed", thickness: 0.6pt)
+      line((cx, 0), (cx, cy), stroke: ds)
+      line((0, cy), (cx, cy), stroke: ds)
+      circle((cx, cy), radius: 2pt, fill: t.accent, stroke: none)
+      if lbl != none { content((cx + 0.4em, cy + 0.4em), text(size: 8.5pt, fill: t.ink, lbl), anchor: "west") }
     }
     // axis labels
     if x-label != none { content((w/2, -1.6em), text(size: 9pt, fill: t.muted, x-label), anchor: "north") }
