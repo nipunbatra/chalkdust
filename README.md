@@ -12,7 +12,8 @@ numerics (random, optimize, distributions, data-frame), visualization
 | Package | Status | What it does |
 |---|---|---|
 | [`rand`](packages/rand) | v0.1.0 | seeded, pure PRNG — uniform / normal / integer / Bernoulli draws, random vectors, sampling, Fisher–Yates shuffle |
-| [`optim`](packages/optim) | v0.1.0 | numerical optimization — GD, momentum, Nesterov, RMSProp, Adam, SGD (returns the full trajectory, N-dimensional) + finite-difference gradient |
+| [`autodiff`](packages/autodiff) | v0.1.0 | reverse-mode automatic differentiation (micrograd in miniature) — build a scalar expression, get the exact gradient in one backward pass |
+| [`optim`](packages/optim) | v0.1.0 | numerical optimization — GD, momentum, Nesterov, RMSProp, Adam, SGD (returns the full trajectory, N-dimensional) + finite-difference / autodiff gradients |
 | [`dist`](packages/dist) | v0.1.0 | probability distributions with exact pdf / log-pdf / nll — Normal, Laplace, Student-t, Uniform, Exponential, Bernoulli, Categorical |
 | [`frame`](packages/frame) | v0.1.0 | a tiny data-frame — load csv/json/arrays, select / filter / mutate / group, bridge columns to plots |
 | [`convgrid`](packages/convgrid) | v0.1.0 | conv arithmetic, annotated grids, pooling, receptive fields, patchify (with masking), attention heatmaps (masks, boxed cells) |

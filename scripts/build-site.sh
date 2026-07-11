@@ -9,7 +9,7 @@ OUT="${1:-_site}"
 rm -rf "$OUT"; mkdir -p "$OUT"
 
 # Render each gallery to crisp vector SVGs (one per page).
-for p in theme rand convgrid plot frame dist optim field; do
+for p in theme rand autodiff convgrid plot frame dist optim field; do
   typst compile --format svg "packages/$p/docs/gallery.typ" "$OUT/$p-{p}.svg"
 done
 
@@ -55,6 +55,7 @@ nav() {  # $1 = current page key (index|convgrid|plot|theme)
   cat <<NAV
 <nav><span class="brand"><a href="index.html" style="color:inherit;text-decoration:none">chalkdust<span class="dot">.</span></a></span>
 <a href="rand.html"$(here rand)>rand</a>
+<a href="autodiff.html"$(here autodiff)>autodiff</a>
 <a href="optim.html"$(here optim)>optim</a>
 <a href="dist.html"$(here dist)>dist</a>
 <a href="frame.html"$(here frame)>frame</a>
@@ -80,7 +81,8 @@ FOOT='<footer>MIT-licensed · native Typst on <a href="https://cetz-package.gith
    so a figure can never disagree with the math on the slide.</p>
   <h2>Packages</h2><div class="cards">
    <a class="card" href="rand.html"><b>rand</b><p>A tiny seeded PRNG — pure uniform / normal / integer draws, random vectors, sampling &amp; shuffle. Reproducible, no hidden state.</p><span class="go">View gallery →</span></a>
-   <a class="card" href="optim.html"><b>optim</b><p>Gradient descent, momentum, Nesterov, RMSProp &amp; Adam that return the real descent trajectory — plus a finite-difference gradient. N-dimensional.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="autodiff.html"><b>autodiff</b><p>Reverse-mode automatic differentiation — micrograd in miniature. Build a scalar expression, get the exact gradient in one backward pass. Drives optim.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="optim.html"><b>optim</b><p>Gradient descent, momentum, Nesterov, RMSProp &amp; Adam that return the real descent trajectory — plus finite-difference &amp; autodiff gradients. N-dimensional.</p><span class="go">View gallery →</span></a>
    <a class="card" href="dist.html"><b>dist</b><p>Standard distributions with exact pdf / log-pdf / nll — so a loss curve is the true negative log-likelihood, not a fudged coefficient.</p><span class="go">View gallery →</span></a>
    <a class="card" href="frame.html"><b>frame</b><p>A tiny data-frame — load CSV/arrays, pick columns by name, filter/mutate, plot. Data, not guesses.</p><span class="go">View gallery →</span></a>
    <a class="card" href="convgrid.html"><b>convgrid</b><p>Convolution arithmetic, grids, pooling, receptive fields, patchify, attention heatmaps.</p><span class="go">View gallery →</span></a>
@@ -114,11 +116,17 @@ pkg_page rand "rand" \
   '#import "@local/rand:0.1.0" as rnd
 #let cloud = range(400).map(i => rnd.randnvec(7, i, 2))   // 400 gaussian 2-D points'
 
+pkg_page autodiff "autodiff" \
+  "Reverse-mode automatic differentiation in Typst — micrograd in miniature. Build a scalar expression from differentiable primitives (add / mul / exp / tanh / relu / …); one backward pass gives the EXACT gradient — no finite differences. Purely functional (immutable graph), so it plugs straight into optim to drive a descent from a loss written once." \
+  '#import "@local/autodiff:0.1.0" as ad
+#let f(v) = ad.add(ad.sq(v.at(0)), ad.mul(100, ad.sq(v.at(1))))  // x² + 100y²
+#ad.grad(f, (-2.3, 0.45))   // (-4.6, 90.0) exactly — feed to optim'
+
 pkg_page optim "optim" \
-  "Small numerical optimization in Typst — gradient descent, momentum, Nesterov, RMSProp and Adam that return the full descent trajectory (N-dimensional, pure, with seeded SGD noise), plus a finite-difference gradient. The path is the real iteration, so a loss-landscape figure and the optimizer never disagree." \
+  "Small numerical optimization in Typst — gradient descent, momentum, Nesterov, RMSProp and Adam that return the full descent trajectory (N-dimensional, pure, with seeded SGD noise). Gradients come from finite differences (numgrad / grad2d) or exact autodiff. The path is the real iteration, so a loss-landscape figure and the optimizer never disagree." \
   '#import "@local/optim:0.1.0" as opt
-#let path = opt.adam(opt.numgrad(f), (-2, 2), lr: 0.2, steps: 60)   // no hand-derived ∇f
-#contour(f2d, paths: (path,))   // feed straight to field.contour'
+#let path = opt.adam(opt.grad2d(loss), (-2, 2), lr: 0.2, steps: 60)   // loss written once
+#contour(loss, paths: (path,))   // feed straight to field.contour'
 
 pkg_page convgrid "convgrid" \
   "Convolution arithmetic (animated multiply-add), annotated grids, pooling, receptive-field growth, patchify (with masking), and attention heatmaps (masks, boxed cells) — all computed in Typst." \
@@ -152,4 +160,4 @@ pkg_page theme "theme" \
   '#import "@local/theme:0.1.0": theme
 #let mine = theme(ink: rgb("#23373b"), accent: rgb("#eb811b"))'
 
-echo "built $OUT/ (index + 8 package pages; $(ls "$OUT"/*.svg 2>/dev/null | wc -l | tr -d ' ') gallery SVGs)"
+echo "built $OUT/ (index + 9 package pages; $(ls "$OUT"/*.svg 2>/dev/null | wc -l | tr -d ' ') gallery SVGs)"

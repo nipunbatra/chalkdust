@@ -1,0 +1,8 @@
+[package]
+name = "autodiff"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Nipun Batra"]
+license = "MIT"
+description = "Reverse-mode automatic differentiation in Typst — micrograd in miniature. Build a scalar expression from differentiable primitives (add/mul/exp/tanh/relu/…) and get the exact gradient in one backward pass. Purely functional (immutable graph), so it plugs straight into optim."
+keywords = ["autodiff", "backprop", "micrograd", "gradient", "teaching"]
