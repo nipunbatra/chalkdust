@@ -13,10 +13,10 @@ Reverse-mode automatic differentiation — micrograd in miniature. Build a scala
 expression from differentiable primitives; one backward pass gives the *exact*
 gradient (no finite differences). Purely functional, so it drops into `optim`.
 
-== the loss is written ONCE — autodiff draws the surface and drives the descent
-#let rosen(v) = ad.add(                                    // Rosenbrock: (1-x)² + 100(y-x²)²
-  ad.sq(ad.sub(1, v.at(0))),
-  ad.mul(100, ad.sq(ad.sub(v.at(1), ad.sq(v.at(0))))))
+== the loss is a readable STRING, written ONCE — parsed to the graph, exact gradient
+// Typst has no operator overloading, so `expr` parses the formula into the graph:
+// you write it once, it draws the surface AND drives the descent (exact ∇).
+#let rosen = ad.expr("(1 - x)^2 + 100*(y - x^2)^2", ("x", "y"))   // Rosenbrock
 #fld.contour(ad.fn2(rosen), xlim: (-2, 2), ylim: (-1, 3), samples: 60, levels: 14,
   size: (78mm, 58mm), x-label: [$x$], y-label: [$y$], marks: ((1, 1, [min]),),
   paths: (opt.adam(ad.grad-fn(rosen), (-1.5, 2.5), lr: 0.04, steps: 2000),))

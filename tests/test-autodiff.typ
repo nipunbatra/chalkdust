@@ -37,4 +37,20 @@
 #approx-arr(ad.grad(w => ad.dot(w, (1.0, -2.0, 3.0)), (0.0, 0.0, 0.0)), (1.0, -2.0, 3.0),
   eps: 1e-9, msg: "∇(w·x) = x")
 
+// expr: the SAME gradients from a parsed formula string (no operator overloading)
+#approx-arr(ad.grad(ad.expr("x*x + 100*y*y", ("x", "y")), (-2.3, 0.45)), (-4.6, 90.0),
+  eps: 1e-9, msg: "expr: ∇(x²+100y²)")
+// precedence + right-assoc power + unary minus: -x^2 + 3*y  → (-2x, 3)
+#approx-arr(ad.grad(ad.expr("-x^2 + 3*y", ("x", "y")), (2.0, 5.0)), (-4.0, 3.0),
+  eps: 1e-9, msg: "expr precedence: -x^2 + 3y")
+// Rosenbrock at (0.5,0.5) → (-51, 50)
+#approx-arr(ad.grad(ad.expr("(1 - x)^2 + 100*(y - x^2)^2", ("x", "y")), (0.5, 0.5)), (-51.0, 50.0),
+  eps: 1e-6, msg: "expr: Rosenbrock gradient")
+// calls + nesting: exp(-x^2/2) → -x·exp(-x²/2)
+#approx(ad.grad(ad.expr("exp(-x^2 / 2)", ("x",)), (1.0,)).at(0), -calc.exp(-0.5), eps: 1e-9,
+  msg: "expr: gaussian bump derivative")
+// value matches too
+#approx(ad.value(ad.expr("sin(x*y) + exp(x)", ("x", "y")), (0.5, 2.0)),
+  calc.sin(1.0) + calc.exp(0.5), msg: "expr value = plain evaluation")
+
 #passed("autodiff")
