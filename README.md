@@ -5,13 +5,23 @@ palette-themed, and computed in Typst so figures cannot disagree with the math
 on the slide. Gallery: <https://nipunbatra.github.io/chalkdust/>. Scope and
 roadmap: [SCOPE.md](SCOPE.md).
 
+A small **scientific-computing stack for Typst**, split into focused packages:
+numerics (random, optimize, distributions, data-frame), visualization
+(tensor-grid, plots, fields), and shared tokens.
+
 | Package | Status | What it does |
 |---|---|---|
-| [`ml-theme`](packages/ml-theme) | v0.1.0 | shared design tokens: semantic colors, ramps, stroke weights |
+| [`ml-random`](packages/ml-random) | v0.1.0 | seeded, pure PRNG — uniform / normal / integer / Bernoulli draws, random vectors, sampling, Fisher–Yates shuffle |
+| [`ml-optim`](packages/ml-optim) | v0.1.0 | numerical optimization — GD, momentum, Nesterov, RMSProp, Adam, SGD (returns the full trajectory, N-dimensional) + finite-difference gradient |
+| [`ml-dist`](packages/ml-dist) | v0.1.0 | probability distributions with exact pdf / log-pdf / nll — Normal, Laplace, Student-t, Uniform, Exponential, Bernoulli, Categorical |
+| [`ml-data`](packages/ml-data) | v0.1.0 | a tiny data-frame — load csv/json/arrays, select / filter / mutate / group, bridge columns to plots |
 | [`tensor-grid`](packages/tensor-grid) | v0.1.0 | conv arithmetic, annotated grids, pooling, receptive fields, patchify (with masking), attention heatmaps (masks, boxed cells) |
 | [`ml-plot`](packages/ml-plot) | v0.1.0 | general bar & line plots — distributions (softmax), attention weights, signed gradients, loss / receptive-field curves |
-| `nn-arch` | planned (M3) | MLP/RNN/transformer semantic blocks — on fletcher |
-| `plate-note` | planned (M4) | PGM plate notation à la tikz-bayesnet |
+| [`ml-field`](packages/ml-field) | v0.1.0 | 2-D & 3-D fields of f(x,y) — heatmaps, iso-contours (with overlaid descent paths), surfaces |
+| [`ml-theme`](packages/ml-theme) | v0.1.0 | shared design tokens: semantic colors, ramps, stroke weights |
+| `ml-linalg` | planned | vectors & matrices — matmul, solve, inverse, norms, eig/SVD for small teaching problems |
+| `ml-tensor` | planned | numpy/torch-lite — n-d arrays, elementwise ops, reshape, reductions, broadcasting |
+| `ml-learn` | planned | basic ML algorithms — linear/logistic regression, k-means, kNN, PCA (fit in Typst, plot the result) |
 
 ## Development setup
 

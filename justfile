@@ -4,13 +4,12 @@ local-pkgs := home_directory() / "Library/Application Support/typst/packages/loc
 
 # symlink all packages into the @local namespace
 install:
-    mkdir -p "{{local-pkgs}}/ml-theme" "{{local-pkgs}}/tensor-grid" "{{local-pkgs}}/ml-plot" "{{local-pkgs}}/ml-data" "{{local-pkgs}}/ml-dist" "{{local-pkgs}}/ml-field"
-    ln -sfn "{{justfile_directory()}}/packages/ml-theme" "{{local-pkgs}}/ml-theme/0.1.0"
-    ln -sfn "{{justfile_directory()}}/packages/tensor-grid" "{{local-pkgs}}/tensor-grid/0.1.0"
-    ln -sfn "{{justfile_directory()}}/packages/ml-plot" "{{local-pkgs}}/ml-plot/0.1.0"
-    ln -sfn "{{justfile_directory()}}/packages/ml-data" "{{local-pkgs}}/ml-data/0.1.0"
-    ln -sfn "{{justfile_directory()}}/packages/ml-dist" "{{local-pkgs}}/ml-dist/0.1.0"
-    ln -sfn "{{justfile_directory()}}/packages/ml-field" "{{local-pkgs}}/ml-field/0.1.0"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for p in ml-theme ml-random tensor-grid ml-plot ml-data ml-dist ml-optim ml-field; do
+        mkdir -p "{{local-pkgs}}/$p"
+        ln -sfn "{{justfile_directory()}}/packages/$p" "{{local-pkgs}}/$p/0.1.0"
+    done
 
 # run the assertion tests — a failed assert is a failed compile
 test:
@@ -21,12 +20,12 @@ test:
 
 # compile every package gallery (a smoke test that each figure still renders)
 gallery:
-    typst compile packages/ml-theme/docs/gallery.typ
-    typst compile packages/tensor-grid/docs/gallery.typ
-    typst compile packages/ml-plot/docs/gallery.typ
-    typst compile packages/ml-data/docs/gallery.typ
-    typst compile packages/ml-dist/docs/gallery.typ
-    typst compile packages/ml-field/docs/gallery.typ
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for p in ml-theme ml-random tensor-grid ml-plot ml-data ml-dist ml-optim ml-field; do
+        echo "· $p"; typst compile "packages/$p/docs/gallery.typ" >/dev/null
+    done
+    echo "all galleries compiled"
 
 # render galleries to PNG for visual inspection
 gallery-png:

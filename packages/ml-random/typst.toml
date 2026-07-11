@@ -1,0 +1,8 @@
+[package]
+name = "ml-random"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Nipun Batra"]
+license = "MIT"
+description = "A tiny seeded PRNG for Typst — pure, index-based uniform / normal / integer / Bernoulli draws, random vectors, sampling and Fisher–Yates shuffle. No mutable state, so the same (seed, index) always repeats; good for reproducible teaching figures."
+keywords = ["random", "prng", "sampling", "normal", "teaching"]

@@ -9,12 +9,9 @@ OUT="${1:-_site}"
 rm -rf "$OUT"; mkdir -p "$OUT"
 
 # Render each gallery to crisp vector SVGs (one per page).
-typst compile --format svg packages/ml-theme/docs/gallery.typ    "$OUT/ml-theme-{p}.svg"
-typst compile --format svg packages/tensor-grid/docs/gallery.typ "$OUT/tensor-grid-{p}.svg"
-typst compile --format svg packages/ml-plot/docs/gallery.typ     "$OUT/ml-plot-{p}.svg"
-typst compile --format svg packages/ml-data/docs/gallery.typ     "$OUT/ml-data-{p}.svg"
-typst compile --format svg packages/ml-dist/docs/gallery.typ     "$OUT/ml-dist-{p}.svg"
-typst compile --format svg packages/ml-field/docs/gallery.typ    "$OUT/ml-field-{p}.svg"
+for p in ml-theme ml-random tensor-grid ml-plot ml-data ml-dist ml-optim ml-field; do
+  typst compile --format svg "packages/$p/docs/gallery.typ" "$OUT/$p-{p}.svg"
+done
 
 collect() {  # $1 = prefix → <img> tags for that gallery, in order
   local out=""
@@ -57,11 +54,13 @@ nav() {  # $1 = current page key (index|tensor-grid|ml-plot|ml-theme)
   local c="$1"; here() { [ "$1" = "$c" ] && echo ' class="here"'; }
   cat <<NAV
 <nav><span class="brand"><a href="index.html" style="color:inherit;text-decoration:none">chalkdust<span class="dot">.</span></a></span>
+<a href="ml-random.html"$(here ml-random)>ml-random</a>
+<a href="ml-optim.html"$(here ml-optim)>ml-optim</a>
+<a href="ml-dist.html"$(here ml-dist)>ml-dist</a>
+<a href="ml-data.html"$(here ml-data)>ml-data</a>
 <a href="tensor-grid.html"$(here tensor-grid)>tensor-grid</a>
 <a href="ml-plot.html"$(here ml-plot)>ml-plot</a>
-<a href="ml-data.html"$(here ml-data)>ml-data</a>
 <a href="ml-field.html"$(here ml-field)>ml-field</a>
-<a href="ml-dist.html"$(here ml-dist)>ml-dist</a>
 <a href="ml-theme.html"$(here ml-theme)>ml-theme</a>
 <span class="sp"></span>
 <a href="https://github.com/nipunbatra/chalkdust">GitHub ↗</a></nav>
@@ -80,11 +79,13 @@ FOOT='<footer>MIT-licensed · native Typst on <a href="https://cetz-package.gith
   <p class="tag">Native ML/DL teaching figures in Typst — vector, palette-themeable, and <em>computed in Typst</em>,
    so a figure can never disagree with the math on the slide.</p>
   <h2>Packages</h2><div class="cards">
+   <a class="card" href="ml-random.html"><b>ml-random</b><p>A tiny seeded PRNG — pure uniform / normal / integer draws, random vectors, sampling &amp; shuffle. Reproducible, no hidden state.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="ml-optim.html"><b>ml-optim</b><p>Gradient descent, momentum, Nesterov, RMSProp &amp; Adam that return the real descent trajectory — plus a finite-difference gradient. N-dimensional.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="ml-dist.html"><b>ml-dist</b><p>Standard distributions with exact pdf / log-pdf / nll — so a loss curve is the true negative log-likelihood, not a fudged coefficient.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="ml-data.html"><b>ml-data</b><p>A tiny data-frame — load CSV/arrays, pick columns by name, filter/mutate, plot. Data, not guesses.</p><span class="go">View gallery →</span></a>
    <a class="card" href="tensor-grid.html"><b>tensor-grid</b><p>Convolution arithmetic, grids, pooling, receptive fields, patchify, attention heatmaps.</p><span class="go">View gallery →</span></a>
    <a class="card" href="ml-plot.html"><b>ml-plot</b><p>Bar & line plots from a function, columns, or points — distributions, gradients, loss curves.</p><span class="go">View gallery →</span></a>
    <a class="card" href="ml-field.html"><b>ml-field</b><p>2-D & 3-D fields of f(x,y) — heatmaps, iso-contours (with descent paths + marked minima), and surfaces.</p><span class="go">View gallery →</span></a>
-   <a class="card" href="ml-data.html"><b>ml-data</b><p>A tiny data-frame — load CSV/arrays, pick columns by name, filter/mutate, plot. Data, not guesses.</p><span class="go">View gallery →</span></a>
-   <a class="card" href="ml-dist.html"><b>ml-dist</b><p>Standard distributions with exact pdf / log-pdf / nll — so a loss curve is the true negative log-likelihood, not a fudged coefficient.</p><span class="go">View gallery →</span></a>
    <a class="card" href="ml-theme.html"><b>ml-theme</b><p>Shared semantic design tokens — colours, ramps, stroke weights — one override restyles all.</p><span class="go">View gallery →</span></a>
   </div>
   <h2>Use it</h2>
@@ -107,6 +108,17 @@ pkg_page() {  # $1=key  $2=title  $3=desc  $4=usage-snippet
     echo "$FOOT"
   } > "$OUT/$1.html"
 }
+
+pkg_page ml-random "ml-random" \
+  "A tiny seeded PRNG for Typst — pure, index-based uniform / normal / integer / Bernoulli draws, random vectors, element sampling and Fisher–Yates shuffle. Every draw is a pure function of (seed, index), so figures are reproducible and hold no hidden state." \
+  '#import "@local/ml-random:0.1.0" as rnd
+#let cloud = range(400).map(i => rnd.randnvec(7, i, 2))   // 400 gaussian 2-D points'
+
+pkg_page ml-optim "ml-optim" \
+  "Small numerical optimization in Typst — gradient descent, momentum, Nesterov, RMSProp and Adam that return the full descent trajectory (N-dimensional, pure, with seeded SGD noise), plus a finite-difference gradient. The path is the real iteration, so a loss-landscape figure and the optimizer never disagree." \
+  '#import "@local/ml-optim:0.1.0" as opt
+#let path = opt.adam(opt.numgrad(f), (-2, 2), lr: 0.2, steps: 60)   // no hand-derived ∇f
+#contour(f2d, paths: (path,))   // feed straight to ml-field.contour'
 
 pkg_page tensor-grid "tensor-grid" \
   "Convolution arithmetic (animated multiply-add), annotated grids, pooling, receptive-field growth, patchify (with masking), and attention heatmaps (masks, boxed cells) — all computed in Typst." \
@@ -140,4 +152,4 @@ pkg_page ml-theme "ml-theme" \
   '#import "@local/ml-theme:0.1.0": theme
 #let mine = theme(ink: rgb("#23373b"), accent: rgb("#eb811b"))'
 
-echo "built $OUT/ (index + 3 package pages; $(ls "$OUT"/*.svg 2>/dev/null | wc -l | tr -d ' ') gallery SVGs)"
+echo "built $OUT/ (index + 8 package pages; $(ls "$OUT"/*.svg 2>/dev/null | wc -l | tr -d ' ') gallery SVGs)"
