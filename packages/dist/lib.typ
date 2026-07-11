@@ -65,6 +65,23 @@
   logpdf: x => if x >= 0 { calc.ln(rate) - rate * x } else { _NEG-INF },
 )
 
+// ── bivariate ──
+// A 2-D Gaussian density as a plain function (x, y) → p, from a mean and a 2×2
+// covariance (Σ is inverted internally). Drop it straight into field.contour —
+// so a covariance-ellipse figure is a one-liner, no hand-rolled inverse.
+#let gaussian-2d(mu: (0.0, 0.0), sigma: ((1.0, 0.0), (0.0, 1.0))) = {
+  let (a, b) = (sigma.at(0).at(0), sigma.at(0).at(1))
+  let (c, d) = (sigma.at(1).at(0), sigma.at(1).at(1))
+  let det = a * d - b * c
+  let (ia, io, id) = (d / det, -(b + c) / det, a / det)   // Σ⁻¹ as x² , xy , y² coefficients
+  let (mx, my) = mu
+  let scale = 1.0 / (2.0 * calc.pi * calc.sqrt(calc.abs(det)))
+  (x, y) => {
+    let (u, v) = (x - mx, y - my)
+    scale * calc.exp(-0.5 * (ia * u * u + io * u * v + id * v * v))
+  }
+}
+
 // ── discrete ──
 #let bernoulli(p: 0.5) = (
   name: "Bernoulli", kind: "discrete", mean: p, var: p * (1 - p),

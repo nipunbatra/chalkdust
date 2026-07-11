@@ -56,4 +56,12 @@
 // temperature -> 0 sharpens toward argmax
 #ok(dist.softmax((1.0, 2.0, 3.0), temperature: 0.1).at(2) > 0.99, msg: "low temperature is peaky")
 
+// gaussian-2d: peak at the mean is the normalizing constant 1/(2π√|Σ|)
+#let g = dist.gaussian-2d(mu: (1.0, -2.0), sigma: ((1.0, 0.0), (0.0, 1.0)))
+#approx(g(1.0, -2.0), 1.0 / (2.0 * calc.pi), msg: "std gaussian-2d peak = 1/2π")
+#ok(g(1.0, -2.0) > g(2.0, -2.0) and g(2.0, -2.0) > g(3.0, -2.0), msg: "density falls off from the mean")
+// a positively-correlated Σ is denser along y=x than across it
+#let gc = dist.gaussian-2d(sigma: ((1.0, 0.8), (0.8, 1.0)))
+#ok(gc(1.0, 1.0) > gc(1.0, -1.0), msg: "correlation tilts the density along the diagonal")
+
 #passed("dist")
