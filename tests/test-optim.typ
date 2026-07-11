@@ -13,6 +13,10 @@
 #let f(p) = p.at(0) * p.at(0) + 50.0 * p.at(1) * p.at(1)
 #approx-arr((opt.numgrad(f))((1.0, 1.0)), (2.0, 100.0), eps: 1e-2, msg: "numgrad ≈ analytic gradient")
 
+// grad2d: same but the loss is written as f(x, y) → scalar
+#let f2(x, y) = x * x + 100.0 * y * y
+#approx-arr((opt.grad2d(f2))((-2.3, 0.45)), (-4.6, 90.0), eps: 1e-2, msg: "grad2d matches ∇(x²+100y²)")
+
 // ill-conditioned bowl: grad (2x, 100y); every optimizer must reach near 0
 #let g(p) = (2.0 * p.at(0), 100.0 * p.at(1))
 #let x0 = (-2.4, 0.85)

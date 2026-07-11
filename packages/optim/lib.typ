@@ -34,6 +34,11 @@
   (f(xp) - f(xm)) / (2.0 * h)
 })
 
+// grad2d(f): the gradient of a 2-D loss written as f(x, y) → scalar, as a
+// p → (gx, gy) function ready for the optimizers. Write the loss ONCE (it also
+// draws the contour) and the descent gradient can never disagree with it.
+#let grad2d(f, h: 1e-4) = numgrad(v => f(v.at(0), v.at(1)), h: h)
+
 // ── the unified optimizer ─────────────────────────────────────────────────
 // grad: vector → vector.  x0: starting vector.  Returns [x0, x1, …, x_steps].
 //   method: "gd" | "momentum" | "nesterov" | "rmsprop" | "adam"
