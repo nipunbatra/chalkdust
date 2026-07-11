@@ -1,0 +1,163 @@
+// ml-field — 2-D and 3-D plots of a function f(x, y): heatmaps, iso-contours,
+// and surfaces. Native Typst on CeTZ, themed through ml-theme. Everything is
+// SAMPLED FROM THE FUNCTION, so a loss landscape or a posterior contour is the
+// real field, not a drawing — and a descent path can be overlaid on the same
+// coordinates the contour is drawn in.
+//
+//   #import "@local/ml-field:0.1.0": *
+//   #contour((x, y) => x*x + 3*y*y, xlim: (-3, 3), ylim: (-3, 3),
+//            paths: (((-2.5, 2.5), (-1.2, 0.8), (-0.4, 0.2), (0, 0)),),
+//            marks: ((0, 0, [min]),))
+
+#import "@preview/cetz:0.4.2"
+#import "@local/ml-theme:0.1.0": default-theme, theme, clamp, norm, ramp-color
+
+// sample f on an nx×ny grid over [x0,x1]×[y0,y1]; z.at(iy).at(ix)
+#let _sample(fn, xlim, ylim, nx, ny) = {
+  let (x0, x1) = xlim
+  let (y0, y1) = ylim
+  range(ny).map(iy => range(nx).map(ix => {
+    let x = x0 + (x1 - x0) * ix / (nx - 1)
+    let y = y0 + (y1 - y0) * iy / (ny - 1)
+    fn(x, y)
+  }))
+}
+#let _flat-min-max(z) = { let f = z.flatten(); (calc.min(..f), calc.max(..f)) }
+
+// ═══════════════════════════ heatmap ═══════════════════════════
+#let heatmap(
+  fn, xlim: (-3, 3), ylim: (-3, 3), samples: 44, cell: 1.7mm,
+  ramp: auto, contour-lines: 0, theme: default-theme,
+) = {
+  let t = theme
+  let (nx, ny) = (samples, samples)
+  let z = _sample(fn, xlim, ylim, nx, ny)
+  let (zmin, zmax) = _flat-min-max(z)
+  let rmp = if ramp == auto { t.ramp } else { ramp }
+  cetz.canvas({
+    import cetz.draw: rect
+    for iy in range(ny) {
+      for ix in range(nx) {
+        rect((ix * cell, iy * cell), ((ix + 1) * cell, (iy + 1) * cell),
+          fill: ramp-color(norm(z.at(iy).at(ix), zmin, zmax), rmp), stroke: none)
+      }
+    }
+  })
+}
+
+// ═══════════════════════════ contour ═══════════════════════════
+// Iso-contours via marching squares. `levels` may be an int (that many, spread
+// between min and max) or an explicit array of values. Overlay `paths` (each a
+// list of (x,y) in data coords) and `marks` (x, y, label).
+#let contour(
+  fn, xlim: (-3, 3), ylim: (-3, 3), samples: 56, levels: 8,
+  size: (44mm, 44mm), color: auto, fill: false, ramp: auto,
+  paths: (), marks: (), x-label: none, y-label: none, title: none,
+  theme: default-theme,
+) = {
+  let t = theme
+  let (nx, ny) = (samples, samples)
+  let (x0, x1) = xlim
+  let (y0, y1) = ylim
+  let z = _sample(fn, xlim, ylim, nx, ny)
+  let (zmin, zmax) = _flat-min-max(z)
+  let (w, h) = size
+  let rmp = if ramp == auto { t.ramp } else { ramp }
+  // data (x, y) → screen
+  let sx(x) = (x - x0) / (x1 - x0) * w
+  let sy(y) = (y - y0) / (y1 - y0) * h
+  // grid-index → screen
+  let gx(ix) = ix / (nx - 1) * w
+  let gy(iy) = iy / (ny - 1) * h
+  let lv = if type(levels) == array { levels } else {
+    range(1, levels + 1).map(k => zmin + (zmax - zmin) * k / (levels + 1)) }
+
+  cetz.canvas({
+    import cetz.draw: rect, line, content, circle
+    // optional filled background bands (a coarse heatmap under the lines)
+    if fill {
+      for iy in range(ny - 1) {
+        for ix in range(nx - 1) {
+          let v = (z.at(iy).at(ix) + z.at(iy).at(ix + 1) + z.at(iy + 1).at(ix) + z.at(iy + 1).at(ix + 1)) / 4
+          rect((gx(ix), gy(iy)), (gx(ix + 1), gy(iy + 1)),
+            fill: ramp-color(norm(v, zmin, zmax), rmp).transparentize(35%), stroke: none)
+        }
+      }
+    }
+    // marching squares, one pass per level
+    for L in lv {
+      let lc = if color == auto { ramp-color(norm(L, zmin, zmax), rmp) } else { color }
+      for iy in range(ny - 1) {
+        for ix in range(nx - 1) {
+          let bl = z.at(iy).at(ix)
+          let br = z.at(iy).at(ix + 1)
+          let tr = z.at(iy + 1).at(ix + 1)
+          let tl = z.at(iy + 1).at(ix)
+          let pts = ()
+          // bottom (bl→br), right (br→tr), top (tr→tl), left (tl→bl)
+          if (bl - L) * (br - L) < 0 { let f = (L - bl) / (br - bl); pts.push((gx(ix + f), gy(iy))) }
+          if (br - L) * (tr - L) < 0 { let f = (L - br) / (tr - br); pts.push((gx(ix + 1), gy(iy + f))) }
+          if (tr - L) * (tl - L) < 0 { let f = (L - tr) / (tl - tr); pts.push((gx(ix + 1 - f), gy(iy + 1))) }
+          if (tl - L) * (bl - L) < 0 { let f = (L - tl) / (bl - tl); pts.push((gx(ix), gy(iy + 1 - f))) }
+          if pts.len() == 2 { line(pts.at(0), pts.at(1), stroke: 1pt + lc) }
+          else if pts.len() == 4 { line(pts.at(0), pts.at(1), stroke: 1pt + lc); line(pts.at(2), pts.at(3), stroke: 1pt + lc) }
+        }
+      }
+    }
+    // overlaid descent paths (data coords)
+    for (pi, p) in paths.enumerate() {
+      let pc = t.cycle.at(calc.rem(pi + 1, t.cycle.len()))
+      let sp = p.map(q => (sx(q.at(0)), sy(q.at(1))))
+      for k in range(sp.len() - 1) { line(sp.at(k), sp.at(k + 1), stroke: 1.6pt + pc) }
+      for q in sp { circle(q, radius: 1.6pt, fill: pc, stroke: none) }
+    }
+    // marked points (x, y, label)
+    for m in marks {
+      let (mx, my) = (sx(m.at(0)), sy(m.at(1)))
+      circle((mx, my), radius: 2.4pt, fill: t.accent, stroke: 0.6pt + t.paper)
+      if m.len() > 2 { content((mx + 0.4em, my + 0.4em), text(size: 8.5pt, fill: t.ink, m.at(2)), anchor: "west") }
+    }
+    // frame + labels
+    rect((0, 0), (w, h), stroke: t.frame-stroke + t.ink, fill: none)
+    if x-label != none { content((w / 2, -1.4em), text(size: 9pt, fill: t.muted, x-label), anchor: "north") }
+    if y-label != none { content((-1.4em, h / 2), rotate(-90deg, text(size: 9pt, fill: t.muted, y-label)), anchor: "south") }
+    if title != none { content((w / 2, h + 1em), text(size: 10pt, fill: t.ink, weight: 600, title), anchor: "south") }
+  })
+}
+
+// ═══════════════════════════ surface ═══════════════════════════
+// A 3-D surface of f(x,y) drawn as filled quads in an oblique projection,
+// painted back-to-front (painter's algorithm) and shaded by height.
+#let surface(
+  fn, xlim: (-3, 3), ylim: (-3, 3), samples: 26,
+  cell: 3.4mm, depth: 0.55, height: 26mm, ramp: auto,
+  x-label: none, y-label: none, z-label: none, title: none,
+  theme: default-theme,
+) = {
+  let t = theme
+  let n = samples
+  let z = _sample(fn, xlim, ylim, n, n)
+  let (zmin, zmax) = _flat-min-max(z)
+  let rmp = if ramp == auto { t.ramp } else { ramp }
+  // oblique projection: x → right, y → up-right (depth), z → up
+  let px(ix, iy) = ix * cell + iy * depth * cell
+  let py(ix, iy, v) = iy * depth * cell * 0.5 + norm(v, zmin, zmax) * height
+  cetz.canvas({
+    import cetz.draw: line, content
+    // draw quads from the BACK (high iy) to the FRONT (low iy) so near hides far
+    for iy in range(n - 1).rev() {
+      for ix in range(n - 1) {
+        let v = (z.at(iy).at(ix) + z.at(iy).at(ix + 1) + z.at(iy + 1).at(ix) + z.at(iy + 1).at(ix + 1)) / 4
+        let a = (px(ix, iy), py(ix, iy, z.at(iy).at(ix)))
+        let b = (px(ix + 1, iy), py(ix + 1, iy, z.at(iy).at(ix + 1)))
+        let c = (px(ix + 1, iy + 1), py(ix + 1, iy + 1, z.at(iy + 1).at(ix + 1)))
+        let d = (px(ix, iy + 1), py(ix, iy + 1, z.at(iy + 1).at(ix)))
+        line(a, b, c, d, close: true,
+          fill: ramp-color(norm(v, zmin, zmax), rmp), stroke: 0.3pt + t.ink.transparentize(55%))
+      }
+    }
+    if title != none {
+      content((px(n / 2, n / 2), height + 1.2em), text(size: 10pt, fill: t.ink, weight: 600, title), anchor: "south")
+    }
+  })
+}

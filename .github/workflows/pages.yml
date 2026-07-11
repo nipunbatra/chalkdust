@@ -26,12 +26,13 @@ jobs:
       - name: Install packages into the @local namespace
         run: |
           LOCAL="$HOME/.local/share/typst/packages/local"
-          mkdir -p "$LOCAL/ml-theme" "$LOCAL/tensor-grid" "$LOCAL/ml-plot" "$LOCAL/ml-data" "$LOCAL/ml-dist"
+          mkdir -p "$LOCAL/ml-theme" "$LOCAL/tensor-grid" "$LOCAL/ml-plot" "$LOCAL/ml-data" "$LOCAL/ml-dist" "$LOCAL/ml-field"
           ln -sfn "$PWD/packages/ml-theme"    "$LOCAL/ml-theme/0.1.0"
           ln -sfn "$PWD/packages/tensor-grid" "$LOCAL/tensor-grid/0.1.0"
           ln -sfn "$PWD/packages/ml-plot"     "$LOCAL/ml-plot/0.1.0"
           ln -sfn "$PWD/packages/ml-data"     "$LOCAL/ml-data/0.1.0"
           ln -sfn "$PWD/packages/ml-dist"     "$LOCAL/ml-dist/0.1.0"
+          ln -sfn "$PWD/packages/ml-field"    "$LOCAL/ml-field/0.1.0"
 
       - name: Run tests (a failed assert is a failed compile → gates the deploy)
         run: |
