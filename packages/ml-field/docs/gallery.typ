@@ -28,5 +28,6 @@ path is overlaid in the same coordinates.
 #let prior(x, y) = calc.exp(-(x * x + y * y) / (2 * 1.2 * 1.2))
 #contour((lik, prior, (x, y) => lik(x, y) * prior(x, y)),
   xlim: (-2.5, 4), ylim: (-2, 3.5), samples: 70, levels: 4,
-  marks: ((2.0, 1.5, [MLE]), (1.385, 1.04, [MAP]), (0.0, 0.0, [0])),
+  colors: (orange, blue, olive),
+  marks: ((2.0, 1.5, [MLE], orange), (1.385, 1.04, [MAP], olive), (0.0, 0.0, [0], blue)),
   size: (66mm, 56mm), x-label: [$theta_1$], y-label: [$theta_2$])

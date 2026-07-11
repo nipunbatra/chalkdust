@@ -48,7 +48,7 @@
 // ═══════════════════════════ contour ═══════════════════════════
 // Iso-contours via marching squares. `levels` may be an int (that many, spread
 // between min and max) or an explicit array of values. Overlay `paths` (each a
-// list of (x,y) in data coords) and `marks` (x, y, label).
+// list of (x,y) in data coords) and `marks` (x, y[, label[, colour]]).
 #let contour(
   fn, xlim: (-3, 3), ylim: (-3, 3), samples: 56, levels: 8,
   size: (44mm, 44mm), color: auto, colors: none, fill: false, ramp: auto,
@@ -119,11 +119,12 @@
       for k in range(sp.len() - 1) { line(sp.at(k), sp.at(k + 1), stroke: 1.6pt + pc) }
       for q in sp { circle(q, radius: 1.6pt, fill: pc, stroke: none) }
     }
-    // marked points (x, y, label)
+    // marked points: (x, y) · (x, y, label) · (x, y, label, colour)
     for m in marks {
       let (mx, my) = (sx(m.at(0)), sy(m.at(1)))
-      circle((mx, my), radius: 2.4pt, fill: t.accent, stroke: 0.6pt + t.paper)
-      if m.len() > 2 { content((mx + 0.4em, my + 0.4em), text(size: 8.5pt, fill: t.ink, m.at(2)), anchor: "west") }
+      let mcol = if m.len() > 3 { m.at(3) } else { t.accent }
+      circle((mx, my), radius: 2.4pt, fill: mcol, stroke: 0.6pt + t.paper)
+      if m.len() > 2 { content((mx + 0.4em, my + 0.4em), text(size: 8.5pt, weight: 600, fill: mcol, m.at(2)), anchor: "west") }
     }
     // frame + labels
     rect((0, 0), (w, h), stroke: t.frame-stroke + t.ink, fill: none)

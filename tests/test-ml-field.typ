@@ -17,7 +17,7 @@
 #let a(x, y) = calc.exp(-((x - 1.0) * (x - 1.0) + y * y))
 #let b(x, y) = calc.exp(-(x * x + y * y))
 #fld.contour((a, b, (x, y) => a(x, y) * b(x, y)), xlim: (-2, 3), ylim: (-2, 2),
-  levels: 3, marks: ((0.5, 0, [map]),), size: (34mm, 28mm))
+  levels: 3, marks: ((1.0, 0, [mle], orange), (0.5, 0, [map], green)), size: (34mm, 28mm))
 
 // surface: a bowl and a saddle
 #fld.surface((x, y) => x * x + y * y, xlim: (-2, 2), ylim: (-2, 2), samples: 16)
