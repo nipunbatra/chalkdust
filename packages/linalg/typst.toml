@@ -1,0 +1,8 @@
+[package]
+name = "linalg"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Nipun Batra"]
+license = "MIT"
+description = "Small dense linear algebra for Typst — vectors and matrices with transpose, matmul, matrix-vector, Gaussian-elimination solve / inverse / determinant, norms, and a Jacobi symmetric eigendecomposition. Enough to fit a regression or run PCA in a slide."
+keywords = ["linear-algebra", "matrix", "solve", "eigenvalue", "teaching"]

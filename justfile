@@ -6,7 +6,7 @@ local-pkgs := home_directory() / "Library/Application Support/typst/packages/loc
 install:
     #!/usr/bin/env bash
     set -euo pipefail
-    for p in theme bits rand autodiff convgrid plot frame dist optim field; do
+    for p in theme bits rand autodiff convgrid plot frame linalg dist optim field; do
         mkdir -p "{{local-pkgs}}/$p"
         ln -sfn "{{justfile_directory()}}/packages/$p" "{{local-pkgs}}/$p/0.1.0"
     done
@@ -22,7 +22,7 @@ test:
 gallery:
     #!/usr/bin/env bash
     set -euo pipefail
-    for p in theme bits rand autodiff convgrid plot frame dist optim field; do
+    for p in theme bits rand autodiff convgrid plot frame linalg dist optim field; do
         echo "· $p"; typst compile "packages/$p/docs/gallery.typ" >/dev/null
     done
     echo "all galleries compiled"
