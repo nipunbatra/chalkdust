@@ -9,12 +9,21 @@
 //   #let noise = range(50).map(i => rnd.randn(7, i))     // 50 N(0,1) draws, seed 7
 //   #let pts   = range(50).map(i => rnd.randnvec(7, i, 2)) // 50 2-D gaussian points
 
-// ── core hash: (seed, i) → uniform [0, 1) via a few LCG mixing rounds ──
+// ── core hash: (seed, i) → uniform [0, 1) ──
+// A purely LINEAR (LCG) hash of the index has strong serial correlation —
+// consecutive draws land on lattice lines (bad scatter) and Box–Muller on them
+// is not Gaussian. Typst has no bitwise ops, so we break the linearity with a
+// NONLINEAR step: square mod a Mersenne prime (2^31-1), interleaved with LCG
+// rounds. Squaring keeps x < 2^31 so x*x < 2^62 stays inside i64. Verified:
+// lag-1/2 correlation ≈ 0, χ²-uniform, 2-D pairs independent, N(0,1) skew/kurt ≈ 0.
+#let _M = 2147483647   // 2^31 - 1, a Mersenne prime
 #let rand(seed, i) = {
-  let x = calc.rem(seed * 1664525 + i * 1013904223 + 12345, 4294967296)
-  x = calc.rem(x * 1664525 + 1013904223, 4294967296)
-  x = calc.rem(x * 1664525 + 1013904223, 4294967296)
-  x / 4294967296.0
+  let x = calc.rem((calc.rem(i, _M) + 1) * 1103515245 + (calc.rem(seed, _M) + 1) * 12345 + 1, _M)
+  x = calc.rem(x * x + 1, _M)                 // nonlinear — breaks LCG lattice structure
+  x = calc.rem(x * 1103515245 + 12345, _M)
+  x = calc.rem(x * x + 1, _M)                 // nonlinear again
+  x = calc.rem(x * 1103515245 + 12345, _M)
+  x / _M
 }
 
 // ── scalar draws ──

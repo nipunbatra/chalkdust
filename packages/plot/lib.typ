@@ -68,6 +68,7 @@
   bar: 10mm,                  // thickness of each bar
   span: 34mm,                 // length of the longest bar
   gap: auto,                  // spacing between bars (auto → bar * 0.55)
+  size: none,                 // (width, height) → auto-fit bar thickness & span to this box
   color: auto,                // auto → theme.accent | a color | fn(i, value) → color
   title: none,
   digits: 2,
@@ -75,6 +76,12 @@
 ) = {
   let t = theme
   let items = _bar-items(values, labels)
+  // fit the whole chart into `size` if given: n bars along the cross axis (each
+  // bar + gap ≈ bar·1.55), the value axis spans the other dimension.
+  let (bar, span) = if size != none {
+    let (w, h) = size
+    if horizontal { (h / (items.len() * 1.55), w) } else { (w / (items.len() * 1.55), h) }
+  } else { (bar, span) }
   let raw = items.map(it => it.at(1))
   let vals = if softmax { _softmax(raw, temperature: temperature) } else { raw }
   let hi = _hi-set(highlight, t)
