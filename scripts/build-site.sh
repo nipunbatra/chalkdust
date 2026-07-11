@@ -13,6 +13,7 @@ typst compile --format svg packages/ml-theme/docs/gallery.typ    "$OUT/ml-theme-
 typst compile --format svg packages/tensor-grid/docs/gallery.typ "$OUT/tensor-grid-{p}.svg"
 typst compile --format svg packages/ml-plot/docs/gallery.typ     "$OUT/ml-plot-{p}.svg"
 typst compile --format svg packages/ml-data/docs/gallery.typ     "$OUT/ml-data-{p}.svg"
+typst compile --format svg packages/ml-dist/docs/gallery.typ     "$OUT/ml-dist-{p}.svg"
 
 collect() {  # $1 = prefix → <img> tags for that gallery, in order
   local out=""
@@ -58,6 +59,7 @@ nav() {  # $1 = current page key (index|tensor-grid|ml-plot|ml-theme)
 <a href="tensor-grid.html"$(here tensor-grid)>tensor-grid</a>
 <a href="ml-plot.html"$(here ml-plot)>ml-plot</a>
 <a href="ml-data.html"$(here ml-data)>ml-data</a>
+<a href="ml-dist.html"$(here ml-dist)>ml-dist</a>
 <a href="ml-theme.html"$(here ml-theme)>ml-theme</a>
 <span class="sp"></span>
 <a href="https://github.com/nipunbatra/chalkdust">GitHub ↗</a></nav>
@@ -79,6 +81,7 @@ FOOT='<footer>MIT-licensed · native Typst on <a href="https://cetz-package.gith
    <a class="card" href="tensor-grid.html"><b>tensor-grid</b><p>Convolution arithmetic, grids, pooling, receptive fields, patchify, attention heatmaps.</p><span class="go">View gallery →</span></a>
    <a class="card" href="ml-plot.html"><b>ml-plot</b><p>Bar & line plots from a function, columns, or points — distributions, gradients, loss curves.</p><span class="go">View gallery →</span></a>
    <a class="card" href="ml-data.html"><b>ml-data</b><p>A tiny data-frame — load CSV/arrays, pick columns by name, filter/mutate, plot. Data, not guesses.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="ml-dist.html"><b>ml-dist</b><p>Standard distributions with exact pdf / log-pdf / nll — so a loss curve is the true negative log-likelihood, not a fudged coefficient.</p><span class="go">View gallery →</span></a>
    <a class="card" href="ml-theme.html"><b>ml-theme</b><p>Shared semantic design tokens — colours, ramps, stroke weights — one override restyles all.</p><span class="go">View gallery →</span></a>
   </div>
   <h2>Use it</h2>
@@ -117,6 +120,12 @@ pkg_page ml-data "ml-data" \
   '#import "@local/ml-data:0.1.0" as md
 #let f = md.frame(csv("runs.csv"))
 #mp.lines(md.xy(f, "epoch", ("adam", "sgd")), labels: ("Adam", "SGD"))'
+
+pkg_page ml-dist "ml-dist" \
+  "Standard probability distributions with exact pdf / log-pdf / nll — Normal, Laplace, Student-t, Uniform, Exponential, Bernoulli, Categorical. A loss curve becomes the true negative log-likelihood of a parameterised distribution, computed in Typst (Student-t via a Lanczos log-Gamma)." \
+  '#import "@local/ml-dist:0.1.0" as dist
+#let g = dist.normal(sigma: 1.0)
+#lines(fn: r => dist.nll0(g, r), domain: (-3, 3))   // the true NLL loss shape'
 
 pkg_page ml-theme "ml-theme" \
   "Shared semantic design tokens — colour roles, a diverging value ramp, a multi-series cycle, and stroke weights. Every sibling package takes a theme dict, so one override restyles every figure." \
