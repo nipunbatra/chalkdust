@@ -162,7 +162,7 @@
   markers: true,             // bool for all series, or a per-series array of bools
   dashes: none,               // per-series stroke style: array of "solid" | "dashed" | "dotted"
   legend: none,               // none | "tr" | "tl" | "br" | "bl" — a legend box (instead of end labels)
-  fill-under: none,           // series index | (index, color) — shade the area under a curve (e.g. AP)
+  fill-under: none,           // idx | (idx, color) | (from:, to:, color:, series:) — shade under a curve
   points: (),                 // ((x, y, label), …) — read-off markers with droplines to the axes
   vlines: (),                 // ((x, label?, color?), …) — dashed vertical reference lines
   hlines: (),                 // ((y, label?, color?), …) — dashed horizontal reference lines
@@ -221,14 +221,25 @@
     let dashof(si) = if dashes != none and si < dashes.len() and dashes.at(si) != "solid" { dashes.at(si) } else { none }
     // markers: a single bool for all series, or a per-series array of bools
     let markerof(si) = if type(markers) == array { si < markers.len() and markers.at(si) } else { markers }
-    // shade the area under a curve (e.g. precision–recall AP)
+    // shade the area under a curve. Forms:
+    //   idx                              whole series `idx`
+    //   (idx, color)                     whole series, custom colour
+    //   (from: a, to: b, color:, series:) only the part with a ≤ x ≤ b (e.g. P(a≤Y≤b))
     if fill-under != none {
-      let (fi, fc) = if type(fill-under) == array { (fill-under.at(0), fill-under.at(1)) }
-        else { (fill-under, sercol(fill-under).transparentize(80%)) }
-      let s = sers.at(fi)
-      let poly = s.map(p => (px(p.at(0)), py(p.at(1))))
-      poly.push((px(s.last().at(0)), 0pt)); poly.push((px(s.first().at(0)), 0pt))
-      line(..poly, close: true, fill: fc, stroke: none)
+      let (fi, fc, s) = if type(fill-under) == dictionary {
+        let fi = fill-under.at("series", default: 0)
+        (fi, fill-under.at("color", default: sercol(fi).transparentize(70%)),
+         sers.at(fi).filter(p => p.at(0) >= fill-under.from and p.at(0) <= fill-under.to))
+      } else if type(fill-under) == array {
+        (fill-under.at(0), fill-under.at(1), sers.at(fill-under.at(0)))
+      } else {
+        (fill-under, sercol(fill-under).transparentize(80%), sers.at(fill-under))
+      }
+      if s.len() >= 2 {
+        let poly = s.map(p => (px(p.at(0)), py(p.at(1))))
+        poly.push((px(s.last().at(0)), 0pt)); poly.push((px(s.first().at(0)), 0pt))
+        line(..poly, close: true, fill: fc, stroke: none)
+      }
     }
     // series
     for (si, s) in sers.enumerate() {

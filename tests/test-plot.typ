@@ -25,5 +25,8 @@
 // two series with per-series markers: a smooth curve + a marked trajectory on it
 #mp.lines((range(0, 20).map(i => { let t = i / 5.0; (t, (t - 2) * (t - 2)) }),
   ((0, 4), (1, 1), (2, 0))), markers: (false, true), y-ticks: false)
+// fill-under an x-interval of a fn curve (P(a≤Y≤b) area)
+#mp.lines(fn: x => calc.exp(-x * x / 2), domain: (-3, 3), markers: false,
+  fill-under: (from: -1, to: 1, color: red.transparentize(60%)))
 
 #passed("plot (smoke)")
