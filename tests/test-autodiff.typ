@@ -53,4 +53,17 @@
 #approx(ad.value(ad.expr("sin(x*y) + exp(x)", ("x", "y")), (0.5, 2.0)),
   calc.sin(1.0) + calc.exp(0.5), msg: "expr value = plain evaluation")
 
+// trace: the graph as data — the scalar backprop example (w*x+b-y)² at (2,3,1,10)
+#let g = ad.trace(ad.expr("(w*x + b - y)^2", ("w", "x", "b", "y")), (2, 3, 1, 10),
+  names: ("w", "x", "b", "y"))
+#eq(g.len(), 8, msg: "trace: 4 inputs + ×,+,−,² = 8 nodes")
+#let out = g.find(nd => nd.id == 0)
+#approx(out.value, 9.0, msg: "trace: output value = 9")
+#approx(out.grad, 1.0, msg: "trace: output adjoint seeded to 1")
+#let wn = g.find(nd => nd.input and nd.label == "w")
+#approx(wn.value, 2.0, msg: "trace: input w value")
+#approx(wn.grad, -18.0, eps: 1e-6, msg: "trace: w̄ = -18 (the exact adjoint)")
+// graph() renders (a drawing bug would fail this compile)
+#let _ = ad.graph(ad.expr("x*x + y*y", ("x", "y")), (1, 2), names: ("x", "y"))
+
 #passed("autodiff")

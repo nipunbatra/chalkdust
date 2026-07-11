@@ -27,6 +27,13 @@ At $(0.5, 2)$: value $= #calc.round(ad.value(f, (0.5, 2.0)), digits: 4)$,
 $nabla f = #ad.grad(f, (0.5, 2.0)).map(g => calc.round(g, digits: 4))$
 (analytic $(y cos x y + e^x, x cos x y) = (2.7290, 0.2702)$).
 
+== the whole computation graph, drawn — every value and adjoint auto-derived
+// (w*x + b - y)² at w=2, x=3, b=1, y=10 — the classic scalar backprop example
+#ad.graph(ad.expr("(w*x + b - y)^2", ("w", "x", "b", "y")), (2, 3, 1, 10),
+  names: ("w", "x", "b", "y"))
+Each node shows its forward `= value` and backward `∂ adjoint`; nothing is typed by
+hand — it is exactly what the reverse pass computed.
+
 == activation derivatives fall out for free
 #table(columns: 4, stroke: 0.4pt + gray, inset: 6pt,
   [$sigma'(0)$], [$#ad.grad(v => ad.sigmoid(v.at(0)), (0.0,)).at(0)$],
