@@ -26,7 +26,7 @@ jobs:
       - name: Install packages into the @local namespace
         run: |
           LOCAL="$HOME/.local/share/typst/packages/local"
-          for p in theme bits rand autodiff convgrid plot frame linalg dist optim field learn; do
+          for p in theme bits rand autodiff convgrid plot frame linalg tensor dist optim field learn; do
             mkdir -p "$LOCAL/$p"
             ln -sfn "$PWD/packages/$p" "$LOCAL/$p/0.1.0"
           done

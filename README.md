@@ -16,6 +16,7 @@ numerics (random, optimize, distributions, data-frame), visualization
 | [`autodiff`](packages/autodiff) | v0.1.0 | reverse-mode automatic differentiation (micrograd in miniature) — build a scalar expression, get the exact gradient in one backward pass |
 | [`optim`](packages/optim) | v0.1.0 | numerical optimization — GD, momentum, Nesterov, RMSProp, Adam, SGD (returns the full trajectory, N-dimensional) + finite-difference / autodiff gradients |
 | [`linalg`](packages/linalg) | v0.1.0 | small dense linear algebra — transpose, matmul, solve / inverse / determinant, Jacobi symmetric eigendecomposition (fit a regression, run PCA) |
+| [`tensor`](packages/tensor) | v0.1.0 | numpy/torch-lite n-d array — reshape/transpose, elementwise with full broadcasting, axis reductions, matmul (via linalg), random (via rand) |
 | [`dist`](packages/dist) | v0.1.0 | probability distributions with exact pdf / log-pdf / nll — Normal, Laplace, Student-t, Uniform, Exponential, Bernoulli, Categorical |
 | [`frame`](packages/frame) | v0.1.0 | a tiny data-frame — load csv/json/arrays, select / filter / mutate / group, bridge columns to plots |
 | [`convgrid`](packages/convgrid) | v0.1.0 | conv arithmetic, annotated grids, pooling, receptive fields, patchify (with masking), attention heatmaps (masks, boxed cells) |
@@ -23,7 +24,6 @@ numerics (random, optimize, distributions, data-frame), visualization
 | [`field`](packages/field) | v0.1.0 | 2-D & 3-D fields of f(x,y) — heatmaps, iso-contours (with overlaid descent paths), surfaces |
 | [`learn`](packages/learn) | v0.1.0 | classic ML fit in Typst — linear/logistic regression, k-means, k-NN, PCA (the capstone: builds on linalg/optim/rand/dist, draws through plot/field) |
 | [`theme`](packages/theme) | v0.1.0 | shared design tokens: semantic colors, ramps, stroke weights |
-| `tensor` | planned | numpy/torch-lite — n-d arrays, elementwise ops, reshape, reductions, broadcasting |
 
 ## Development setup
 

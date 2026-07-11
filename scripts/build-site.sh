@@ -9,7 +9,7 @@ OUT="${1:-_site}"
 rm -rf "$OUT"; mkdir -p "$OUT"
 
 # Render each gallery to crisp vector SVGs (one per page).
-for p in theme bits rand autodiff convgrid plot frame linalg dist optim field learn; do
+for p in theme bits rand autodiff convgrid plot frame linalg tensor dist optim field learn; do
   typst compile --format svg "packages/$p/docs/gallery.typ" "$OUT/$p-{p}.svg"
 done
 
@@ -61,6 +61,7 @@ nav() {  # $1 = current page key (index|convgrid|plot|theme)
 <a href="dist.html"$(here dist)>dist</a>
 <a href="frame.html"$(here frame)>frame</a>
 <a href="linalg.html"$(here linalg)>linalg</a>
+<a href="tensor.html"$(here tensor)>tensor</a>
 <a href="convgrid.html"$(here convgrid)>convgrid</a>
 <a href="plot.html"$(here plot)>plot</a>
 <a href="field.html"$(here field)>field</a>
@@ -90,6 +91,7 @@ FOOT='<footer>MIT-licensed · native Typst on <a href="https://cetz-package.gith
    <a class="card" href="dist.html"><b>dist</b><p>Standard distributions with exact pdf / log-pdf / nll — so a loss curve is the true negative log-likelihood, not a fudged coefficient.</p><span class="go">View gallery →</span></a>
    <a class="card" href="frame.html"><b>frame</b><p>A tiny data-frame — load CSV/arrays, pick columns by name, filter/mutate, plot. Data, not guesses.</p><span class="go">View gallery →</span></a>
    <a class="card" href="linalg.html"><b>linalg</b><p>Small dense linear algebra — transpose, matmul, solve / inverse / determinant, and a Jacobi symmetric eigendecomposition. Fit a regression or run PCA.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="tensor.html"><b>tensor</b><p>A numpy/torch-lite n-d array — reshape, transpose, elementwise ops with full broadcasting, axis reductions, and matmul (via linalg) / random tensors (via rand).</p><span class="go">View gallery →</span></a>
    <a class="card" href="convgrid.html"><b>convgrid</b><p>Convolution arithmetic, grids, pooling, receptive fields, patchify, attention heatmaps.</p><span class="go">View gallery →</span></a>
    <a class="card" href="plot.html"><b>plot</b><p>Bar & line plots from a function, columns, or points — distributions, gradients, loss curves.</p><span class="go">View gallery →</span></a>
    <a class="card" href="field.html"><b>field</b><p>2-D & 3-D fields of f(x,y) — heatmaps, iso-contours (with descent paths + marked minima), and surfaces.</p><span class="go">View gallery →</span></a>
@@ -162,6 +164,13 @@ pkg_page linalg "linalg" \
 #la.solve(((2, 1), (1, 3)), (3, 5))     // (0.8, 1.4)
 #la.eig-sym(((2, 1), (1, 2)))           // ((3, 1), eigenvectors)'
 
+pkg_page tensor "tensor" \
+  "A numpy / torch-lite n-dimensional array for Typst — a tensor is (data: flat, shape: dims). Reshape, transpose (with an axes permutation), elementwise ops with full numpy broadcasting, whole-tensor and per-axis reductions, multi-index access, 2-D matmul routed through linalg, and random tensors from rand. The shared array primitive." \
+  '#import "@local/tensor:0.1.0" as nd
+#let A = nd.arr(((1, 2, 3), (4, 5, 6)))       // shape (2, 3)
+#nd.add(A, nd.arr((10, 20, 30)))              // broadcasts the row vector
+#nd.matmul(A, nd.transpose(A))                // (2,3)·(3,2) via linalg'
+
 pkg_page dist "dist" \
   "Standard probability distributions with exact pdf / log-pdf / nll — Normal, Laplace, Student-t, Uniform, Exponential, Bernoulli, Categorical. A loss curve becomes the true negative log-likelihood of a parameterised distribution, computed in Typst (Student-t via a Lanczos log-Gamma)." \
   '#import "@local/dist:0.1.0" as dist
@@ -185,4 +194,4 @@ pkg_page theme "theme" \
   '#import "@local/theme:0.1.0": theme
 #let mine = theme(ink: rgb("#23373b"), accent: rgb("#eb811b"))'
 
-echo "built $OUT/ (index + 12 package pages; $(ls "$OUT"/*.svg 2>/dev/null | wc -l | tr -d ' ') gallery SVGs)"
+echo "built $OUT/ (index + 13 package pages; $(ls "$OUT"/*.svg 2>/dev/null | wc -l | tr -d ' ') gallery SVGs)"

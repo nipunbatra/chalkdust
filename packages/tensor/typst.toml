@@ -1,0 +1,8 @@
+[package]
+name = "tensor"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Nipun Batra"]
+license = "MIT"
+description = "A numpy/torch-lite n-dimensional array for Typst — shape/reshape/transpose, elementwise ops with full broadcasting, axis reductions, indexing and slicing, and 2-D matmul (via linalg). Random tensors come from rand. The array primitive the rest of the stack can share."
+keywords = ["tensor", "ndarray", "numpy", "broadcasting", "teaching"]
