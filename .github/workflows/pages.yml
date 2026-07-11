@@ -33,6 +33,10 @@ jobs:
           ln -sfn "$PWD/packages/ml-data"     "$LOCAL/ml-data/0.1.0"
           ln -sfn "$PWD/packages/ml-dist"     "$LOCAL/ml-dist/0.1.0"
 
+      - name: Run tests (a failed assert is a failed compile → gates the deploy)
+        run: |
+          for f in tests/test-*.typ; do echo "· $f"; typst compile "$f" /tmp/t.png; done
+
       - name: Build site (render gallery + landing page)
         run: bash scripts/build-site.sh _site
 

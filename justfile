@@ -11,7 +11,14 @@ install:
     ln -sfn "{{justfile_directory()}}/packages/ml-data" "{{local-pkgs}}/ml-data/0.1.0"
     ln -sfn "{{justfile_directory()}}/packages/ml-dist" "{{local-pkgs}}/ml-dist/0.1.0"
 
-# compile every package gallery (the de-facto test suite)
+# run the assertion tests — a failed assert is a failed compile
+test:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for f in tests/test-*.typ; do echo "· $f"; typst compile "$f" /tmp/chalkdust-test.png >/dev/null; done
+    echo "all tests passed"
+
+# compile every package gallery (a smoke test that each figure still renders)
 gallery:
     typst compile packages/ml-theme/docs/gallery.typ
     typst compile packages/tensor-grid/docs/gallery.typ
