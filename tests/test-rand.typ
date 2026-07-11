@@ -3,6 +3,13 @@
 #import "@local/rand:0.1.0" as rnd
 #import "asserts.typ": passed, ok, eq, approx
 
+// KNOWN-ANSWER TEST: proves this really is Threefry-2x32-20 by reproducing the
+// canonical Random123 KAT vector (ctr, key → ciphertext). Matching a full 64-bit
+// output is only possible if every constant, rotation, and the round/key-injection
+// schedule are exactly right — this exercises the Skein parity key ks2 too.
+#eq(rnd.threefry2x32(0, 0, 0, 0), (1797259609, 2579123966),
+  msg: "Threefry-2x32-20 KAT: ctr=(0,0) key=(0,0) → (0x6b200159, 0x99ba4efe)")
+
 // reproducible: same (seed, i) → same draw
 #eq(rnd.rand(3, 7), rnd.rand(3, 7), msg: "rand is a pure function of (seed, i)")
 #ok(rnd.rand(3, 7) != rnd.rand(3, 8), msg: "different index → different draw")
