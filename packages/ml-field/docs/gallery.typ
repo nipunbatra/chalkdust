@@ -22,3 +22,11 @@ path is overlaid in the same coordinates.
 
 == surface — a saddle, drawn back-to-front and shaded by height
 #surface((x, y) => x * x - y * y, xlim: (-2, 2), ylim: (-2, 2), samples: 24, title: [$x^2 - y^2$])
+
+== contour — several families at once (Bayesian MAP = likelihood × prior)
+#let lik(x, y)   = calc.exp(-((x - 2.0) * (x - 2.0) + (y - 1.5) * (y - 1.5)) / (2 * 0.8 * 0.8))
+#let prior(x, y) = calc.exp(-(x * x + y * y) / (2 * 1.2 * 1.2))
+#contour((lik, prior, (x, y) => lik(x, y) * prior(x, y)),
+  xlim: (-2.5, 4), ylim: (-2, 3.5), samples: 70, levels: 4,
+  marks: ((2.0, 1.5, [MLE]), (1.385, 1.04, [MAP]), (0.0, 0.0, [0])),
+  size: (66mm, 56mm), x-label: [$theta_1$], y-label: [$theta_2$])

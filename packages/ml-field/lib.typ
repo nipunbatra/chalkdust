@@ -51,7 +51,7 @@
 // list of (x,y) in data coords) and `marks` (x, y, label).
 #let contour(
   fn, xlim: (-3, 3), ylim: (-3, 3), samples: 56, levels: 8,
-  size: (44mm, 44mm), color: auto, fill: false, ramp: auto,
+  size: (44mm, 44mm), color: auto, colors: none, fill: false, ramp: auto,
   paths: (), marks: (), x-label: none, y-label: none, title: none,
   theme: default-theme,
 ) = {
@@ -59,8 +59,6 @@
   let (nx, ny) = (samples, samples)
   let (x0, x1) = xlim
   let (y0, y1) = ylim
-  let z = _sample(fn, xlim, ylim, nx, ny)
-  let (zmin, zmax) = _flat-min-max(z)
   let (w, h) = size
   let rmp = if ramp == auto { t.ramp } else { ramp }
   // data (x, y) → screen
@@ -69,38 +67,48 @@
   // grid-index → screen
   let gx(ix) = ix / (nx - 1) * w
   let gy(iy) = iy / (ny - 1) * h
-  let lv = if type(levels) == array { levels } else {
-    range(1, levels + 1).map(k => zmin + (zmax - zmin) * k / (levels + 1)) }
+  // one function, or several overlaid families (likelihood / prior / posterior)
+  let fns = if type(fn) == function { (fn,) } else { fn }
 
   cetz.canvas({
     import cetz.draw: rect, line, content, circle
-    // optional filled background bands (a coarse heatmap under the lines)
-    if fill {
-      for iy in range(ny - 1) {
-        for ix in range(nx - 1) {
-          let v = (z.at(iy).at(ix) + z.at(iy).at(ix + 1) + z.at(iy + 1).at(ix) + z.at(iy + 1).at(ix + 1)) / 4
-          rect((gx(ix), gy(iy)), (gx(ix + 1), gy(iy + 1)),
-            fill: ramp-color(norm(v, zmin, zmax), rmp).transparentize(35%), stroke: none)
+    for (fi, f) in fns.enumerate() {
+      let z = _sample(f, xlim, ylim, nx, ny)
+      let (zmin, zmax) = _flat-min-max(z)
+      let lv = if type(levels) == array { levels } else {
+        range(1, levels + 1).map(k => zmin + (zmax - zmin) * k / (levels + 1)) }
+      // colour: explicit per-fn, single override, ramp (1 fn) or cycle (many)
+      let single = fns.len() == 1
+      let fcol = if colors != none and fi < colors.len() { colors.at(fi) }
+        else if color != auto { color }
+        else if single { none }                                   // per-level ramp below
+        else { t.cycle.at(calc.rem(fi, t.cycle.len())) }
+      // optional filled bands (only meaningful for a single field)
+      if fill and single {
+        for iy in range(ny - 1) {
+          for ix in range(nx - 1) {
+            let v = (z.at(iy).at(ix) + z.at(iy).at(ix + 1) + z.at(iy + 1).at(ix) + z.at(iy + 1).at(ix + 1)) / 4
+            rect((gx(ix), gy(iy)), (gx(ix + 1), gy(iy + 1)),
+              fill: ramp-color(norm(v, zmin, zmax), rmp).transparentize(35%), stroke: none)
+          }
         }
       }
-    }
-    // marching squares, one pass per level
-    for L in lv {
-      let lc = if color == auto { ramp-color(norm(L, zmin, zmax), rmp) } else { color }
-      for iy in range(ny - 1) {
-        for ix in range(nx - 1) {
-          let bl = z.at(iy).at(ix)
-          let br = z.at(iy).at(ix + 1)
-          let tr = z.at(iy + 1).at(ix + 1)
-          let tl = z.at(iy + 1).at(ix)
-          let pts = ()
-          // bottom (bl→br), right (br→tr), top (tr→tl), left (tl→bl)
-          if (bl - L) * (br - L) < 0 { let f = (L - bl) / (br - bl); pts.push((gx(ix + f), gy(iy))) }
-          if (br - L) * (tr - L) < 0 { let f = (L - br) / (tr - br); pts.push((gx(ix + 1), gy(iy + f))) }
-          if (tr - L) * (tl - L) < 0 { let f = (L - tr) / (tl - tr); pts.push((gx(ix + 1 - f), gy(iy + 1))) }
-          if (tl - L) * (bl - L) < 0 { let f = (L - tl) / (bl - tl); pts.push((gx(ix), gy(iy + 1 - f))) }
-          if pts.len() == 2 { line(pts.at(0), pts.at(1), stroke: 1pt + lc) }
-          else if pts.len() == 4 { line(pts.at(0), pts.at(1), stroke: 1pt + lc); line(pts.at(2), pts.at(3), stroke: 1pt + lc) }
+      for L in lv {
+        let lc = if fcol != none { fcol } else { ramp-color(norm(L, zmin, zmax), rmp) }
+        for iy in range(ny - 1) {
+          for ix in range(nx - 1) {
+            let bl = z.at(iy).at(ix)
+            let br = z.at(iy).at(ix + 1)
+            let tr = z.at(iy + 1).at(ix + 1)
+            let tl = z.at(iy + 1).at(ix)
+            let pts = ()
+            if (bl - L) * (br - L) < 0 { let g = (L - bl) / (br - bl); pts.push((gx(ix + g), gy(iy))) }
+            if (br - L) * (tr - L) < 0 { let g = (L - br) / (tr - br); pts.push((gx(ix + 1), gy(iy + g))) }
+            if (tr - L) * (tl - L) < 0 { let g = (L - tr) / (tl - tr); pts.push((gx(ix + 1 - g), gy(iy + 1))) }
+            if (tl - L) * (bl - L) < 0 { let g = (L - tl) / (bl - tl); pts.push((gx(ix), gy(iy + 1 - g))) }
+            if pts.len() == 2 { line(pts.at(0), pts.at(1), stroke: 1pt + lc) }
+            else if pts.len() == 4 { line(pts.at(0), pts.at(1), stroke: 1pt + lc); line(pts.at(2), pts.at(3), stroke: 1pt + lc) }
+          }
         }
       }
     }
