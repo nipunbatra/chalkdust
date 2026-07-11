@@ -1,0 +1,8 @@
+[package]
+name = "learn"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Nipun Batra"]
+license = "MIT"
+description = "Classic ML algorithms fit in Typst — linear regression (normal equations), logistic regression (gradient descent), k-means, k-NN, and PCA. The capstone of the chalkdust stack: it builds on linalg, optim, rand and dist, and its results plot straight through field/plot."
+keywords = ["machine-learning", "regression", "kmeans", "pca", "teaching"]

@@ -9,7 +9,7 @@ OUT="${1:-_site}"
 rm -rf "$OUT"; mkdir -p "$OUT"
 
 # Render each gallery to crisp vector SVGs (one per page).
-for p in theme bits rand autodiff convgrid plot frame linalg dist optim field; do
+for p in theme bits rand autodiff convgrid plot frame linalg dist optim field learn; do
   typst compile --format svg "packages/$p/docs/gallery.typ" "$OUT/$p-{p}.svg"
 done
 
@@ -64,6 +64,7 @@ nav() {  # $1 = current page key (index|convgrid|plot|theme)
 <a href="convgrid.html"$(here convgrid)>convgrid</a>
 <a href="plot.html"$(here plot)>plot</a>
 <a href="field.html"$(here field)>field</a>
+<a href="learn.html"$(here learn)>learn</a>
 <a href="theme.html"$(here theme)>theme</a>
 <span class="sp"></span>
 <a href="https://github.com/nipunbatra/chalkdust">GitHub ↗</a></nav>
@@ -92,6 +93,7 @@ FOOT='<footer>MIT-licensed · native Typst on <a href="https://cetz-package.gith
    <a class="card" href="convgrid.html"><b>convgrid</b><p>Convolution arithmetic, grids, pooling, receptive fields, patchify, attention heatmaps.</p><span class="go">View gallery →</span></a>
    <a class="card" href="plot.html"><b>plot</b><p>Bar & line plots from a function, columns, or points — distributions, gradients, loss curves.</p><span class="go">View gallery →</span></a>
    <a class="card" href="field.html"><b>field</b><p>2-D & 3-D fields of f(x,y) — heatmaps, iso-contours (with descent paths + marked minima), and surfaces.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="learn.html"><b>learn</b><p>Classic ML fit in Typst — linear/logistic regression, k-means, k-NN, PCA. The capstone: built on linalg/optim/rand/dist, drawn through plot/field.</p><span class="go">View gallery →</span></a>
    <a class="card" href="theme.html"><b>theme</b><p>Shared semantic design tokens — colours, ramps, stroke weights — one override restyles all.</p><span class="go">View gallery →</span></a>
   </div>
   <h2>Use it</h2>
@@ -171,9 +173,16 @@ pkg_page field "field" \
   '#import "@local/field:0.1.0": *
 #contour((x, y) => x*x + 3*y*y, xlim: (-3,3), ylim: (-3,3), marks: ((0,0,[min]),))'
 
+pkg_page learn "learn" \
+  "Classic ML algorithms fit in Typst — linear regression (normal equations), logistic regression (gradient descent), k-means, k-nearest-neighbours, and PCA. The capstone of the stack: it builds on linalg, optim, rand and dist, and its results (a fitted line, a decision boundary, a clustering, a principal axis) draw straight through plot and field. Everything is computed, not drawn." \
+  '#import "@local/learn:0.1.0" as ml
+#ml.linreg-fit((0, 1, 2, 3), (1, 3, 5, 7))   // (intercept, slope) = (1, 2)
+#ml.kmeans(points, 3)                          // (centroids, assignments)
+#ml.pca(data, k: 2)                            // principal axes + variances'
+
 pkg_page theme "theme" \
   "Shared semantic design tokens — colour roles, a diverging value ramp, a multi-series cycle, and stroke weights. Every sibling package takes a theme dict, so one override restyles every figure." \
   '#import "@local/theme:0.1.0": theme
 #let mine = theme(ink: rgb("#23373b"), accent: rgb("#eb811b"))'
 
-echo "built $OUT/ (index + 11 package pages; $(ls "$OUT"/*.svg 2>/dev/null | wc -l | tr -d ' ') gallery SVGs)"
+echo "built $OUT/ (index + 12 package pages; $(ls "$OUT"/*.svg 2>/dev/null | wc -l | tr -d ' ') gallery SVGs)"

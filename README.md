@@ -21,9 +21,9 @@ numerics (random, optimize, distributions, data-frame), visualization
 | [`convgrid`](packages/convgrid) | v0.1.0 | conv arithmetic, annotated grids, pooling, receptive fields, patchify (with masking), attention heatmaps (masks, boxed cells) |
 | [`plot`](packages/plot) | v0.1.0 | general bar & line plots — distributions (softmax), attention weights, signed gradients, loss / receptive-field curves |
 | [`field`](packages/field) | v0.1.0 | 2-D & 3-D fields of f(x,y) — heatmaps, iso-contours (with overlaid descent paths), surfaces |
+| [`learn`](packages/learn) | v0.1.0 | classic ML fit in Typst — linear/logistic regression, k-means, k-NN, PCA (the capstone: builds on linalg/optim/rand/dist, draws through plot/field) |
 | [`theme`](packages/theme) | v0.1.0 | shared design tokens: semantic colors, ramps, stroke weights |
 | `tensor` | planned | numpy/torch-lite — n-d arrays, elementwise ops, reshape, reductions, broadcasting |
-| `learn` | planned | basic ML algorithms — linear/logistic regression, k-means, kNN, PCA (fit in Typst, plot the result) |
 
 ## Development setup
 
