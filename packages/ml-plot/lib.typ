@@ -159,7 +159,7 @@
   labels: none,               // per-series legend labels
   colors: none,               // per-series colour override (array); default → theme.cycle
   log-y: false,
-  markers: true,
+  markers: true,             // bool for all series, or a per-series array of bools
   dashes: none,               // per-series stroke style: array of "solid" | "dashed" | "dotted"
   legend: none,               // none | "tr" | "tl" | "br" | "bl" — a legend box (instead of end labels)
   fill-under: none,           // series index | (index, color) — shade the area under a curve (e.g. AP)
@@ -219,6 +219,8 @@
     let sercol(si) = if colors != none and si < colors.len() { colors.at(si) }
       else { t.cycle.at(calc.rem(si, t.cycle.len())) }
     let dashof(si) = if dashes != none and si < dashes.len() and dashes.at(si) != "solid" { dashes.at(si) } else { none }
+    // markers: a single bool for all series, or a per-series array of bools
+    let markerof(si) = if type(markers) == array { si < markers.len() and markers.at(si) } else { markers }
     // shade the area under a curve (e.g. precision–recall AP)
     if fill-under != none {
       let (fi, fc) = if type(fill-under) == array { (fill-under.at(0), fill-under.at(1)) }
@@ -234,7 +236,7 @@
       let pts = s.map(p => (px(p.at(0)), py(p.at(1))))
       let st = if dashof(si) != none { (paint: col, thickness: 1.4pt, dash: dashof(si)) } else { 1.4pt + col }
       for k in range(pts.len() - 1) { line(pts.at(k), pts.at(k + 1), stroke: st) }
-      if markers { for p in pts { circle(p, radius: 1.6pt, fill: col, stroke: none) } }
+      if markerof(si) { for p in pts { circle(p, radius: 1.6pt, fill: col, stroke: none) } }
       // end-of-line label (unless a legend box is drawn instead)
       if labels != none and legend == none and si < labels.len() {
         content((pts.last().at(0) + 0.4em, pts.last().at(1)),

@@ -22,5 +22,8 @@
   hlines: ((0.5, [chance]),), vlines: ((1.0, [t]),), annotations: ((1.5, 0.4, [note]),))
 #mp.lines(fn: p => -calc.ln(p), domain: (0.01, 1), markers: false,
   points: ((0.5, -calc.ln(0.5), [half]),))
+// two series with per-series markers: a smooth curve + a marked trajectory on it
+#mp.lines((range(0, 20).map(i => { let t = i / 5.0; (t, (t - 2) * (t - 2)) }),
+  ((0, 4), (1, 1), (2, 0))), markers: (false, true), y-ticks: false)
 
 #passed("ml-plot (smoke)")
