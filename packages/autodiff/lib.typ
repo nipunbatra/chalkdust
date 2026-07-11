@@ -30,7 +30,8 @@
   (v: a.v / b.v, kids: ((a, 1.0 / b.v), (b, -a.v / (b.v * b.v))), slot: none, op: "÷") }
 #let neg(a) = { let a = _lift(a); (v: -a.v, kids: ((a, -1.0),), slot: none, op: "−") }
 #let powc(a, p) = { let a = _lift(a)               // constant real power
-  (v: calc.pow(a.v, p), kids: ((a, p * calc.pow(a.v, p - 1.0)),), slot: none, op: "^" + str(p)) }
+  (v: calc.pow(a.v, p), kids: ((a, p * calc.pow(a.v, p - 1.0)),), slot: none,
+   op: "^" + (if p == calc.round(p) { str(int(p)) } else { str(p) })) }
 #let sq(a) = { let a = _lift(a); (v: a.v * a.v, kids: ((a, 2.0 * a.v),), slot: none, op: "()²") }
 #let sqrt(a) = { let a = _lift(a); let s = calc.sqrt(a.v); (v: s, kids: ((a, 0.5 / s),), slot: none, op: "√") }
 #let exp(a) = { let a = _lift(a); let e = calc.exp(a.v); (v: e, kids: ((a, e),), slot: none, op: "exp") }
