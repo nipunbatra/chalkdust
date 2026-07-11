@@ -17,10 +17,11 @@
 
 = rand
 
-A tiny *seeded, pure PRNG*: every draw is a function of `(seed, index)`, so
-figures are reproducible and hold no hidden state. The core hash is #emph[nonlinear]
-(square-mix mod a Mersenne prime) — so consecutive draws are uncorrelated and
-Box–Muller gives a true bell curve. `#import "@local/rand:0.1.0" as rnd`
+A tiny *seeded, pure PRNG*: every draw is a function of `(seed, index)`, so figures
+are reproducible and hold no hidden state. It is *counter-based* — the index is run
+through a strong bit-mixer (MurmurHash3's `fmix32`, the design behind scientific
+counter-RNGs) — so consecutive draws and different seeds are statistically
+independent, and Box–Muller gives a true bell curve. `#import "@local/rand:0.1.0" as rnd`
 
 == What's available
 #table(columns: 2, stroke: 0.5pt + rgb("#e6e1d6"), inset: (x: 9pt, y: 6pt), align: (left, left),

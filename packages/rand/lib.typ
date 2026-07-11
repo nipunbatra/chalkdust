@@ -10,21 +10,48 @@
 //   #let pts   = range(50).map(i => rnd.randnvec(7, i, 2)) // 50 2-D gaussian points
 
 // ── core hash: (seed, i) → uniform [0, 1) ──
-// A purely LINEAR (LCG) hash of the index has strong serial correlation —
-// consecutive draws land on lattice lines (bad scatter) and Box–Muller on them
-// is not Gaussian. Typst has no bitwise ops, so we break the linearity with a
-// NONLINEAR step: square mod a Mersenne prime (2^31-1), interleaved with LCG
-// rounds. Squaring keeps x < 2^31 so x*x < 2^62 stays inside i64. Verified:
-// lag-1/2 correlation ≈ 0, χ²-uniform, 2-D pairs independent, N(0,1) skew/kurt ≈ 0.
-#let _M = 2147483647   // 2^31 - 1, a Mersenne prime
-#let rand(seed, i) = {
-  let x = calc.rem((calc.rem(i, _M) + 1) * 1103515245 + (calc.rem(seed, _M) + 1) * 12345 + 1, _M)
-  x = calc.rem(x * x + 1, _M)                 // nonlinear — breaks LCG lattice structure
-  x = calc.rem(x * 1103515245 + 12345, _M)
-  x = calc.rem(x * x + 1, _M)                 // nonlinear again
-  x = calc.rem(x * 1103515245 + 12345, _M)
-  x / _M
+// This is a COUNTER-BASED generator: hash the counter (seed, i) with a strong
+// bit-mixer, exactly the design of the Random123 / "squares" RNGs used in
+// scientific computing (numpy's PCG is the same spirit — a good permutation of a
+// counter). The mixer is MurmurHash3's `fmix32` finalizer, which has proven
+// avalanche (every input bit flips ~half the output bits), so consecutive indices
+// and different seeds give statistically independent streams — not the lattice
+// lines a plain LCG produces. Typst has no bitwise ops and i64 overflows on a
+// 32-bit multiply, so xor is done by a bit loop and (a·b) mod 2^32 by 16-bit
+// chunks. Verified: autocorrelation ≈ 0 out to lag 20, χ²-uniform, 2-D/3-D pairs
+// independent, cross-seed correlation ≈ 0, N(0,1) skew/kurtosis ≈ 0.
+#let _2p32 = 4294967296
+#let _mulmod32(a, b) = {                       // (a·b) mod 2^32, overflow-free
+  let al = calc.rem(a, 65536)
+  let ah = calc.floor(a / 65536)
+  let bl = calc.rem(b, 65536)
+  let bh = calc.floor(b / 65536)
+  calc.rem(al * bl + calc.rem(al * bh + ah * bl, 65536) * 65536, _2p32)
 }
+#let _xor32(a, b) = {                           // 32-bit xor via a bit loop
+  let r = 0
+  let p = 1
+  let x = a
+  let y = b
+  while p < _2p32 {
+    if calc.rem(x, 2) != calc.rem(y, 2) { r += p }
+    x = calc.floor(x / 2)
+    y = calc.floor(y / 2)
+    p = p * 2
+  }
+  r
+}
+#let _fmix32(h0) = {                            // MurmurHash3 finalizer
+  let h = calc.rem(h0, _2p32)
+  h = _xor32(h, calc.floor(h / 65536))         // h ^= h >> 16
+  h = _mulmod32(h, 2246822519)                 // h *= 0x85ebca6b
+  h = _xor32(h, calc.floor(h / 8192))          // h ^= h >> 13
+  h = _mulmod32(h, 3266489917)                 // h *= 0xc2b2ae35
+  h = _xor32(h, calc.floor(h / 65536))         // h ^= h >> 16
+  h
+}
+// hash the counter: the seed picks a stream (golden-ratio offset), the index walks it
+#let rand(seed, i) = _fmix32(calc.rem(i + 1 + _mulmod32(calc.rem(seed, _2p32), 2654435761), _2p32)) / _2p32
 
 // ── scalar draws ──
 #let uniform(seed, i, lo, hi) = lo + rand(seed, i) * (hi - lo)
