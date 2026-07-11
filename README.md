@@ -11,6 +11,7 @@ numerics (random, optimize, distributions, data-frame), visualization
 
 | Package | Status | What it does |
 |---|---|---|
+| [`bits`](packages/bits) | v0.1.0 | 32-bit bitwise ops (shift/rotate/and/or/xor, mul-high) from integer arithmetic — the base for RNGs, hashes, checksums |
 | [`rand`](packages/rand) | v0.1.0 | seeded, pure PRNG — uniform / normal / integer / Bernoulli draws, random vectors, sampling, Fisher–Yates shuffle |
 | [`autodiff`](packages/autodiff) | v0.1.0 | reverse-mode automatic differentiation (micrograd in miniature) — build a scalar expression, get the exact gradient in one backward pass |
 | [`optim`](packages/optim) | v0.1.0 | numerical optimization — GD, momentum, Nesterov, RMSProp, Adam, SGD (returns the full trajectory, N-dimensional) + finite-difference / autodiff gradients |

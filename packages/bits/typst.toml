@@ -1,0 +1,8 @@
+[package]
+name = "bits"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Nipun Batra"]
+license = "MIT"
+description = "32-bit bitwise operations for Typst, built from integer arithmetic (Typst has no native bit ops). Shifts/rotates via powers of two, and/or/xor via 4-bit lookup tables, plus overflow-safe 32-bit multiply and multiply-high — enough to implement RNGs, hashes and checksums (e.g. Threefry, PCG, Murmur)."
+keywords = ["bitwise", "xor", "rotate", "hash", "prng"]

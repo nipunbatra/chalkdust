@@ -16,39 +16,26 @@
 // add / rotate / xor. Being counter-based, the same (seed, i) always maps to the
 // same value with no hidden state, and it passes the empirical RNG test suites.
 //
-// Typst has no bitwise ops, so: rotate is arithmetic (shift = ×/÷ by powers of two,
-// and the two halves of a rotate are disjoint bits → OR is +), and xor uses a
-// precomputed 4-bit nibble table (8 lookups per 32-bit xor). The implementation is
-// exact — it reproduces the official Threefry known-answer test (see test-rand).
+// Typst has no bitwise ops; the sibling `bits` package supplies xor / rotate / add
+// (rotate is arithmetic, xor via a 4-bit table). The implementation is exact — it
+// reproduces the official Threefry known-answer test (see test-rand).
+#import "@local/bits:0.1.0" as bits
 #let _2p32 = 4294967296
-// 4-bit xor table, so a 32-bit xor is 8 table lookups instead of 32 bit tests
-#let _XOR4 = range(16).map(a => range(16).map(b => {
-  let r = 0; let p = 1; let x = a; let y = b
-  for _ in range(4) { if calc.rem(x, 2) != calc.rem(y, 2) { r += p }; x = calc.floor(x / 2); y = calc.floor(y / 2); p = p * 2 }
-  r
-}))
-#let _xor32(a, b) = {
-  let r = 0; let p = 1; let x = a; let y = b
-  for _ in range(8) { r += _XOR4.at(calc.rem(x, 16)).at(calc.rem(y, 16)) * p; x = calc.floor(x / 16); y = calc.floor(y / 16); p = p * 16 }
-  r
-}
-#let _add32(a, b) = calc.rem(a + b, _2p32)
-#let _rotl32(x, k) = calc.rem(x * calc.pow(2, k), _2p32) + calc.floor(x / calc.pow(2, 32 - k))
 #let _R32x2 = (13, 15, 26, 6, 17, 29, 16, 24)   // Threefry-2x32 rotation constants
 // encrypt counter (c0, c1) under key (k0, k1); returns two 32-bit words
 #let threefry2x32(c0, c1, k0, k1) = {
-  let ks2 = _xor32(_xor32(466688986, k0), k1)    // 0x1BD11BDA ^ k0 ^ k1 (Skein parity)
+  let ks2 = bits.bxor(bits.bxor(466688986, k0), k1)   // 0x1BD11BDA ^ k0 ^ k1 (Skein parity)
   let ks = (k0, k1, ks2)
-  let x0 = _add32(c0, k0)
-  let x1 = _add32(c1, k1)
+  let x0 = bits.add(c0, k0)
+  let x1 = bits.add(c1, k1)
   for r in range(20) {
-    x0 = _add32(x0, x1)
-    x1 = _rotl32(x1, _R32x2.at(calc.rem(r, 8)))
-    x1 = _xor32(x1, x0)
+    x0 = bits.add(x0, x1)
+    x1 = bits.rotl(x1, _R32x2.at(calc.rem(r, 8)))
+    x1 = bits.bxor(x1, x0)
     if calc.rem(r, 4) == 3 {                      // inject the key every 4 rounds
       let j = calc.floor(r / 4) + 1
-      x0 = _add32(x0, ks.at(calc.rem(j, 3)))
-      x1 = _add32(_add32(x1, ks.at(calc.rem(j + 1, 3))), j)
+      x0 = bits.add(x0, ks.at(calc.rem(j, 3)))
+      x1 = bits.add(bits.add(x1, ks.at(calc.rem(j + 1, 3))), j)
     }
   }
   (x0, x1)

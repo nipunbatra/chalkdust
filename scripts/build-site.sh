@@ -9,7 +9,7 @@ OUT="${1:-_site}"
 rm -rf "$OUT"; mkdir -p "$OUT"
 
 # Render each gallery to crisp vector SVGs (one per page).
-for p in theme rand autodiff convgrid plot frame dist optim field; do
+for p in theme bits rand autodiff convgrid plot frame dist optim field; do
   typst compile --format svg "packages/$p/docs/gallery.typ" "$OUT/$p-{p}.svg"
 done
 
@@ -55,6 +55,7 @@ nav() {  # $1 = current page key (index|convgrid|plot|theme)
   cat <<NAV
 <nav><span class="brand"><a href="index.html" style="color:inherit;text-decoration:none">chalkdust<span class="dot">.</span></a></span>
 <a href="rand.html"$(here rand)>rand</a>
+<a href="bits.html"$(here bits)>bits</a>
 <a href="autodiff.html"$(here autodiff)>autodiff</a>
 <a href="optim.html"$(here optim)>optim</a>
 <a href="dist.html"$(here dist)>dist</a>
@@ -81,6 +82,7 @@ FOOT='<footer>MIT-licensed · native Typst on <a href="https://cetz-package.gith
    so a figure can never disagree with the math on the slide.</p>
   <h2>Packages</h2><div class="cards">
    <a class="card" href="rand.html"><b>rand</b><p>A tiny seeded PRNG — pure uniform / normal / integer draws, random vectors, sampling &amp; shuffle. Reproducible, no hidden state.</p><span class="go">View gallery →</span></a>
+   <a class="card" href="bits.html"><b>bits</b><p>32-bit bitwise ops (shift, rotate, and/or/xor, mul-high) built from integer arithmetic — enough to implement RNGs, hashes &amp; checksums.</p><span class="go">View gallery →</span></a>
    <a class="card" href="autodiff.html"><b>autodiff</b><p>Reverse-mode automatic differentiation — micrograd in miniature. Build a scalar expression, get the exact gradient in one backward pass. Drives optim.</p><span class="go">View gallery →</span></a>
    <a class="card" href="optim.html"><b>optim</b><p>Gradient descent, momentum, Nesterov, RMSProp &amp; Adam that return the real descent trajectory — plus finite-difference &amp; autodiff gradients. N-dimensional.</p><span class="go">View gallery →</span></a>
    <a class="card" href="dist.html"><b>dist</b><p>Standard distributions with exact pdf / log-pdf / nll — so a loss curve is the true negative log-likelihood, not a fudged coefficient.</p><span class="go">View gallery →</span></a>
@@ -110,6 +112,12 @@ pkg_page() {  # $1=key  $2=title  $3=desc  $4=usage-snippet
     echo "$FOOT"
   } > "$OUT/$1.html"
 }
+
+pkg_page bits "bits" \
+  "32-bit bitwise operations for Typst, built from integer arithmetic (Typst has no native bit ops): shifts and rotates via powers of two, and / or / xor via 4-bit lookup tables, one's complement, modular add/sub, and an overflow-safe 32-bit multiply plus multiply-high. Enough to implement counter RNGs, hashes and checksums (Threefry, PCG, Murmur) — rand is built on it." \
+  '#import "@local/bits:0.1.0" as bits
+#bits.bxor(0xF0F0, 0x00FF)      // 0xF00F
+#bits.rotl(0x80000001, 1)       // 0x00000003'
 
 pkg_page rand "rand" \
   "A tiny seeded PRNG for Typst — pure, index-based uniform / normal / integer / Bernoulli draws, random vectors, element sampling and Fisher–Yates shuffle. Every draw is a pure function of (seed, index), so figures are reproducible and hold no hidden state." \
@@ -160,4 +168,4 @@ pkg_page theme "theme" \
   '#import "@local/theme:0.1.0": theme
 #let mine = theme(ink: rgb("#23373b"), accent: rgb("#eb811b"))'
 
-echo "built $OUT/ (index + 9 package pages; $(ls "$OUT"/*.svg 2>/dev/null | wc -l | tr -d ' ') gallery SVGs)"
+echo "built $OUT/ (index + 10 package pages; $(ls "$OUT"/*.svg 2>/dev/null | wc -l | tr -d ' ') gallery SVGs)"
