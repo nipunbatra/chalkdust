@@ -24,6 +24,28 @@
 }
 #let _flat-min-max(z) = { let f = z.flatten(); (calc.min(..f), calc.max(..f)) }
 
+// ═══════════════════════════ descent ═══════════════════════════
+// Run an optimizer on grad(p) -> (gx, gy) starting from `start`, and return the
+// (x, y) trajectory as a list of points — hand it straight to contour(paths:).
+// The path is the ACTUAL iteration in Typst, so it can't drift from the maths.
+//   method: "gd" | "momentum".  (momentum uses velocity v ← beta·v + g.)
+#let descent(grad, start: (0, 0), lr: 0.01, steps: 30, method: "gd", beta: 0.9) = {
+  let p = (start.at(0) * 1.0, start.at(1) * 1.0)
+  let v = (0.0, 0.0)
+  let pts = (p,)
+  for _ in range(steps) {
+    let g = grad(p)
+    if method == "momentum" {
+      v = (beta * v.at(0) + g.at(0), beta * v.at(1) + g.at(1))
+      p = (p.at(0) - lr * v.at(0), p.at(1) - lr * v.at(1))
+    } else {
+      p = (p.at(0) - lr * g.at(0), p.at(1) - lr * g.at(1))
+    }
+    pts.push(p)
+  }
+  pts
+}
+
 // ═══════════════════════════ heatmap ═══════════════════════════
 #let heatmap(
   fn, xlim: (-3, 3), ylim: (-3, 3), samples: 44, cell: 1.7mm,

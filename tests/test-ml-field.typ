@@ -2,8 +2,18 @@
 // across their options (they return content, so a bug shows up as a failed
 // compile here). Rendered to a scratch page we never look at.
 #import "@local/ml-field:0.1.0" as fld
-#import "asserts.typ": passed
+#import "asserts.typ": passed, approx-arr, ok
 #set page(width: 22cm, height: auto, margin: 10pt)
+
+// descent: GD on x²+3y² (grad (2x,6y)) from (-2.6,1.6) must march toward 0.
+#let path = fld.descent(p => (2.0 * p.at(0), 6.0 * p.at(1)),
+  start: (-2.6, 1.6), lr: 0.12, steps: 12)
+#ok(path.len() == 13, msg: "descent returns steps+1 points")
+#approx-arr(path.first(), (-2.6, 1.6), msg: "descent starts at start")
+// after 12 steps x=(-2.6)(0.76)^12, y=(1.6)(0.28)^12 → essentially at the min
+#ok(calc.abs(path.last().at(0)) < 0.15 and calc.abs(path.last().at(1)) < 1e-4, msg: "descent converges to 0")
+// momentum overshoots the min in y at least once (sign flip) — it's not monotone
+#ok(path.at(1).at(1) > 0, msg: "gd first y-step stays positive (no overshoot on this bowl)")
 
 // heatmap: default ramp, custom samples
 #fld.heatmap((x, y) => x * x + y * y, xlim: (-2, 2), ylim: (-2, 2), samples: 20)
