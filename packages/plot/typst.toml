@@ -1,0 +1,8 @@
+[package]
+name = "plot"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Nipun Batra"]
+license = "MIT"
+description = "General bar and line plots for ML/DL teaching — distributions, attention weights, loss/receptive-field curves — native Typst on CeTZ, themed via theme"
+keywords = ["plot", "bar-chart", "line-plot", "deep-learning", "teaching"]

@@ -1,0 +1,8 @@
+[package]
+name = "theme"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Nipun Batra"]
+license = "MIT"
+description = "Shared design tokens (semantic colors, ramps, stroke weights) for the ml diagram package family"
+keywords = ["theme", "diagram", "machine-learning"]

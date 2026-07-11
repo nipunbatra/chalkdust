@@ -26,7 +26,7 @@ jobs:
       - name: Install packages into the @local namespace
         run: |
           LOCAL="$HOME/.local/share/typst/packages/local"
-          for p in ml-theme ml-random tensor-grid ml-plot ml-data ml-dist ml-optim ml-field; do
+          for p in theme rand convgrid plot frame dist optim field; do
             mkdir -p "$LOCAL/$p"
             ln -sfn "$PWD/packages/$p" "$LOCAL/$p/0.1.0"
           done

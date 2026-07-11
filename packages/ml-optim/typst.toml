@@ -1,8 +1,0 @@
-[package]
-name = "ml-optim"
-version = "0.1.0"
-entrypoint = "lib.typ"
-authors = ["Nipun Batra"]
-license = "MIT"
-description = "Small numerical optimization in Typst — gradient descent, momentum, Nesterov, RMSProp and Adam that return the full descent trajectory (N-dimensional, pure, seeded SGD noise), plus a finite-difference gradient. Feed the path straight to ml-field.contour(paths:)."
-keywords = ["optimization", "gradient-descent", "adam", "sgd", "teaching"]

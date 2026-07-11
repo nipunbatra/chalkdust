@@ -1,8 +1,0 @@
-[package]
-name = "tensor-grid"
-version = "0.1.0"
-entrypoint = "src/lib.typ"
-authors = ["Nipun Batra"]
-license = "MIT"
-description = "Conv arithmetic, annotated tensor grids, pooling, receptive fields, patchify and attention heatmaps for ML/DL teaching — native Typst, built on CeTZ"
-keywords = ["convolution", "deep-learning", "attention", "diagram", "teaching"]

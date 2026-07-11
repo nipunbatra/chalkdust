@@ -6,7 +6,7 @@ local-pkgs := home_directory() / "Library/Application Support/typst/packages/loc
 install:
     #!/usr/bin/env bash
     set -euo pipefail
-    for p in ml-theme ml-random tensor-grid ml-plot ml-data ml-dist ml-optim ml-field; do
+    for p in theme rand convgrid plot frame dist optim field; do
         mkdir -p "{{local-pkgs}}/$p"
         ln -sfn "{{justfile_directory()}}/packages/$p" "{{local-pkgs}}/$p/0.1.0"
     done
@@ -22,19 +22,19 @@ test:
 gallery:
     #!/usr/bin/env bash
     set -euo pipefail
-    for p in ml-theme ml-random tensor-grid ml-plot ml-data ml-dist ml-optim ml-field; do
+    for p in theme rand convgrid plot frame dist optim field; do
         echo "· $p"; typst compile "packages/$p/docs/gallery.typ" >/dev/null
     done
     echo "all galleries compiled"
 
 # render galleries to PNG for visual inspection
 gallery-png:
-    typst compile --format png --ppi 150 packages/tensor-grid/docs/gallery.typ \
-        packages/tensor-grid/docs/gallery-{p}.png
+    typst compile --format png --ppi 150 packages/convgrid/docs/gallery.typ \
+        packages/convgrid/docs/gallery-{p}.png
 
 # compile the dl-teaching demo deck (needs ~/git/dl-teaching)
 demo:
-    cd ~/git/dl-teaching && typst compile --root . tensor-grid-demo.typ /tmp/tg-demo.pdf
+    cd ~/git/dl-teaching && typst compile --root . convgrid-demo.typ /tmp/tg-demo.pdf
 
 # at publish time: swap @local imports for @preview in package sources
 publish-prep:
